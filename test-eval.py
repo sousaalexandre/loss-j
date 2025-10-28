@@ -18,6 +18,7 @@ class AccuracyScore(BaseModel):
 
 def get_llm_comparison_score(query: str, received: str, expected: str) -> float:
     llm = get_llm()
+    llm = llm.bind(temperature=0)
 
     llm_with_schema = llm.with_structured_output(AccuracyScore)
 
@@ -80,7 +81,8 @@ def run_tests(queries: list) -> pd.DataFrame:
         expected = item['expected']
 
         try:
-            received = query_handler(query)
+            received = query_handler(query)["response"]
+            received = received.replace('\n', ' ').replace('\r', ' ')
         except Exception as e:
             received = f"Error: {str(e)}"
 

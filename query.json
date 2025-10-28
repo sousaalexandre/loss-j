@@ -1,10 +1,34 @@
 [
   {
-    "query": "Quais são as condições essenciais para a área funcional Operações Especiais?",
-    "expected": "As condições essenciais para a área funcional Operações Especiais são o 12º ano e saber nadar."
+    "query": "Quais são os requisitos de entrada de sargentos e oficiais, em termos de altura e escolaridade, para a área funcional Operações Especiais?",
+    "expected": "Os requisitos para a área funcional Operações Especiais são ter o 12º ano, saber nadar e ter uma altura de 162cm (feminino e masculino), no caso de sargentos. Para oficiais, é necessário ter qualquer licenciatura ou mestrado, saber nadar e ter 156cm (feminino) ou 160cm (masculino)."
   },
   {
-    "query": "Onde é realizada a formação inicial para todas as áreas funcionais de Sargentos?",
-    "expected": "A formação inicial para todas as áreas funcionais é realizada na Escola de Sargentos do Exército (ESE), em Caldas da Rainha."
+    "query": "Qual é a unidade responsável pela formação inicial de Sargentos para todas as áreas funcionais e onde se localiza?",
+    "expected": "A unidade responsável pela formação inicial para todas as áreas funcionais é a Escola de Sargentos do Exército (ESE), localizada em Caldas da Rainha."
+  },
+  {
+    "query": "Qual é a remuneração total de um General (GEN) em 2024?",
+    "expected": "A remuneração total (TOTAL) de um General (GEN) é 6.558,53 €."
+  },
+  {
+    "query": "Quanto ganha, em termos de remuneração base (RB), um Cad Aluno do 1º Ano?",
+    "expected": "A remuneração base (RB) de um Cad Aluno do 1º Ano é 203,51 €."
+  },
+  {
+    "query": "Qual é a remuneração total de um Sargento-Ajudante (SAJ), NR 23?",
+    "expected": "Os valores de remuneração total para Sargento-Ajudante (SAJ) NR 23 é de 2.205,29 €."
+  },
+  {
+    "query": "Qual é o código de transação SAP mencionado para iniciar o processo de \"Alteração de Horário\"?",
+    "expected": "O código de transação mencionado para a medida de Alteração de Horário é PA40."
+  },
+  {
+    "query": "Para que serve o Infotipo 2003 \"Substituições\", de acordo com o manual?",
+    "expected": "O Infotipo 2003 Substituições serve para realizar a substituição do horário de trabalho do colaborador. O registo de tolerâncias de ponto também deve ser efetuado neste infotipo."
+  },
+  {
+    "query": "Como posso aceder ao relatório \"Síntese de datas\" utilizando um código de transação?",
+    "expected": "Pode aceder ao relatório \"Síntese de datas\" utilizando o código de transação S_PH0_48000450."
   }
 ]
