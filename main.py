@@ -1,5 +1,10 @@
 import streamlit as st
 from src.chains.chain_retrieving_generating import query_handler
+from src.logger import init_logger
+
+
+init_logger()
+
 
 def main():
     st.set_page_config(page_title="LOSS-J", page_icon="💬")

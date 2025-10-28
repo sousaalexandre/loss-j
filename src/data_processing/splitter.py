@@ -2,6 +2,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from typing import List
 from src import settings
+from src.logger import log
 
 def split_documents(documents: List[Document]) -> List[Document]:
     """
@@ -13,7 +14,7 @@ def split_documents(documents: List[Document]) -> List[Document]:
     Returns:
         List[Document]: A list of smaller document chunks.
     """
-    print("Splitting documents into smaller chunks...")
+    log("Splitting documents into smaller chunks...", level="info")
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=settings.CHUNK_SIZE,
         chunk_overlap=settings.CHUNK_OVERLAP,
@@ -21,5 +22,5 @@ def split_documents(documents: List[Document]) -> List[Document]:
         is_separator_regex=False,
     )
     chunks = text_splitter.split_documents(documents)
-    print(f"Successfully split documents into {len(chunks)} chunks.")
+    log(f"Successfully split documents into {len(chunks)} chunks.", level="info")
     return chunks

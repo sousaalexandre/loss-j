@@ -3,6 +3,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from src.vector_store.retriever import get_retriever
 from src.services.llm_generator import get_llm
+from src.logger import log
 import os
 
 def query_handler(prompt: str) -> str:
@@ -19,10 +20,10 @@ def query_handler(prompt: str) -> str:
 
 
     retrieved_docs = retriever.invoke(prompt)
-    print(f"Retrieved {len(retrieved_docs)} documents for prompt: '{prompt}'")
+    log(f"Retrieved {len(retrieved_docs)} documents for prompt: '{prompt}'", level="info")
     for i, doc in enumerate(retrieved_docs):
         file_name = os.path.basename(doc.metadata.get('source', 'Unknown Source'))
-        print(f"Document {i+1} (from {file_name}): {doc.page_content[:200]}...")  # Print file name and first 200 chars of each doc
+        log(f"Document {i+1} (from {file_name}): {doc.page_content[:200]}...", level="info")
 
 
     llm = get_llm()
