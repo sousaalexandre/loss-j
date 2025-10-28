@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.title("Comparação de Resultados")
+st.title("Comparação de Resultados (Beta)")
 st.markdown("Selecione um arquivo de resultados de teste para ver a tabela de comparação.")
 
 st.info("💡 Para gerar novos resultados: Edite `query.json` e execute `test-retrieve-expect.py` com as suas questões e respostas esperadas.")
@@ -26,7 +26,7 @@ TABLE_CSS = """
 </style>
 """
 
-outputs_dir = 'outputs'
+outputs_dir = 'outputs/results'
 if os.path.exists(outputs_dir):
     csv_files = [f for f in os.listdir(outputs_dir) if f.endswith('.csv')]
     if csv_files:

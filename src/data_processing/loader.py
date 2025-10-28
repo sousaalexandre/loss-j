@@ -1,6 +1,7 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 from typing import List
+from src.logger import log
 
 
 def load_document(file_path: str) -> List[Document]:
@@ -15,11 +16,10 @@ def load_document(file_path: str) -> List[Document]:
         List[Document]: A list of Document objects, where each object
                         represents a page in the PDF.
     """
-    print(f"Loading document from: {file_path}")
-    # For this example, we'll use a PDF loader.
-    # You can easily add more loaders for other file types (e.g., TXT, DOCX).
+    log(f"Loading document from: {file_path}", level="info")
+
     loader = PyPDFLoader(file_path)
     documents = loader.load()
-    print(f"Successfully loaded {len(documents)} pages.")
+    log(f"Successfully loaded {len(documents)} pages.", level="info")
     return documents
 
