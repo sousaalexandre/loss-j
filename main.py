@@ -1,6 +1,7 @@
 import streamlit as st
 from src.chains.chain_retrieving_generating import query_handler
 from src.logger import init_logger
+import os
 
 
 init_logger()
@@ -27,9 +28,20 @@ def main():
         with st.chat_message("assistant"):
             with st.spinner("A pensar..."):
                 try:
-                    response = query_handler(prompt)
+                    result = query_handler(prompt)
+                    response = result["response"]
+                    documents = result["documents"]
                     st.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    full_content = response
+                    if documents and not response.strip().startswith("Não sei"):
+                        st.subheader("Fontes:")
+                        sources_text = ""
+                        for doc in documents:
+                            file_name = os.path.basename(doc.metadata.get('source', 'Fonte Desconhecida'))
+                            st.write(f"- **{file_name}**")
+                            sources_text += f"- **{file_name}**\n"
+                        full_content += f"\n\n**Fontes:**\n{sources_text}"
+                    st.session_state.messages.append({"role": "assistant", "content": full_content})
                 except FileNotFoundError:
                     st.error("Database not found. Please go to the 'Manage Knowledge Base' page to upload a document.")
                 except Exception as e:

@@ -6,7 +6,7 @@ from src.services.llm_generator import get_llm
 from src.logger import log
 import os
 
-def query_handler(prompt: str) -> str:
+def query_handler(prompt: str) -> dict:
     """
     Processes a user query by retrieving relevant context and generating a response.
 
@@ -14,10 +14,9 @@ def query_handler(prompt: str) -> str:
         prompt (str): The user's question.
 
     Returns:
-        str: The generated response from the RAG pipeline.
+        dict: A dictionary containing the generated response and the list of retrieved documents.
     """
     retriever = get_retriever()
-
 
     retrieved_docs = retriever.invoke(prompt)
     log(f"Retrieved {len(retrieved_docs)} documents for prompt: '{prompt}'", level="info")
@@ -25,12 +24,12 @@ def query_handler(prompt: str) -> str:
         file_name = os.path.basename(doc.metadata.get('source', 'Unknown Source'))
         log(f"Document {i+1} (from {file_name}): {doc.page_content[:200]}...", level="info")
 
-
     llm = get_llm()
+    llm = llm.bind(temperature=0)
 
     template = """
     Você é um assistente. Responda à pergunta do utilizador baseando-se APENAS no contexto a seguir.
-    Se o contexto não contiver a resposta, diga que não sabe a resposta.
+    Se o contexto não contiver a resposta, diga \"Não sei a resposta.\"
     Responda sempre em português de Portugal
 
     Contexto:
@@ -48,4 +47,5 @@ def query_handler(prompt: str) -> str:
         | StrOutputParser()
     )
 
-    return rag_chain.invoke(prompt)
+    response = rag_chain.invoke(prompt)
+    return {"response": response, "documents": retrieved_docs}
