@@ -1,4 +1,5 @@
-# LOSS-J RAG System
+# LOSS-J
+Locate, Organize, Summarize, Suggest, and Justify
 
 ## Code Structure
 ```bash
