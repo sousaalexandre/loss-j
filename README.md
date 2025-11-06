@@ -1,5 +1,25 @@
 # LOSS-J RAG System
 
+## Code Structure
+```bash
+src
+├── chains          # RAG orchestrators
+│   ├── chain_indexing.py
+│   └── chain_retrieving_generating.py
+├── data_processing
+│   ├── loader.py
+│   └── splitter.py
+├── services        # external integrations
+│   ├── embedding_model.py
+│   └── llm_generator.py
+└── vector_store
+│   ├── indexer.py
+│   └── retriever.py
+├── logger.py       # logs register
+├── settings.py     # settings and constants
+└── utils.py        # general utilities
+```
+
 ## Prerequisites
 
 - Python >= 3.8
@@ -51,10 +71,15 @@ Access the app at [http://localhost:8501](http://localhost:8501).
 
 2. Run the evaluation script:
     ```bash
-    run test-eval.py
+    python test-eval.py
     ```
 
 3. View results in the web interface under the **Results Comparison** page.
+
+
+## Documents for Knowledge Base
+Documents for testing the system, provided by the client, available at [docs/](docs/). 
+Unzip and drag it to the uploader.
 
 
 ---
