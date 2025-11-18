@@ -3,6 +3,7 @@ from src.services import embedding_model
 from src import settings
 from src.utils import generate_file_hash
 from langchain_chroma import Chroma
+from src.logger import log
 
 def get_vector_store() -> Chroma:
     """
@@ -28,6 +29,7 @@ def get_vector_store() -> Chroma:
     return vector_store
 
 def store(chunks:list, embeddings) -> None:
+    log("Storing document chunks in vector store...", level="info")
     Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,

@@ -1,7 +1,20 @@
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Loader
+# converted pdfs to markdown cache directory
+MD_CACHE_DIR = "outputs/mineru/"
+
+# docker or local (mac only)
+MINERU_MODE = "local"
+
+# using minerU on docker
+MINERU_LOCAL_API_URL = "http://localhost:8080/vlm"
+
+
+
+# Models Configuration
 
 LLM_MODEL_NAME = "gpt-4o-mini"
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
