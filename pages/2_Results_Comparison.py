@@ -51,6 +51,16 @@ def color_acc(val):
     except ValueError:
         return val
 
+def get_metric_emoji(val):
+    if val >= 80:
+        return '🟢'
+    elif val >= 60:
+        return '🟡'
+    elif val >= 40:
+        return '🟠'
+    else:
+        return '🔴'
+
 outputs_dir = 'outputs/results/'
 if os.path.exists(outputs_dir):
     csv_files = sorted([f for f in os.listdir(outputs_dir) if f.endswith('.csv')], key=lambda f: f.split('_')[2] + f.split('_')[3].split('.')[0], reverse=True)
@@ -59,13 +69,69 @@ if os.path.exists(outputs_dir):
         file_path = os.path.join(outputs_dir, selected_file)
         
         df = pd.read_csv(file_path)
-        st.subheader(f"Resultados de {selected_file}")
         
         if all(col in df.columns for col in ['Query', 'Received Response', 'Expected Response', 'Meaning Acc (%)']):
+            # metrics
+            acc_values = pd.to_numeric(df['Meaning Acc (%)'], errors='coerce').dropna()
+            
+            if len(acc_values) > 0:
+                mean_acc = acc_values.mean()
+                median_acc = acc_values.median()
+                min_acc = acc_values.min()
+                max_acc = acc_values.max()
+                std_acc = acc_values.std()
+                
+                excellent = (acc_values >= 80).sum()
+                good = ((acc_values >= 60) & (acc_values < 80)).sum()
+                fair = ((acc_values >= 40) & (acc_values < 60)).sum()
+                poor = (acc_values < 40).sum()
+                pass_rate = ((acc_values >= 60).sum() / len(acc_values) * 100)
+                excellence_rate = ((acc_values >= 80).sum() / len(acc_values) * 100)
+                                  
+                with st.expander("📊 Ver Métricas de Desempenho", expanded=True):
+                    col1, col2, col3, col4, col5 = st.columns(5)
+                    
+                    with col1:
+                        st.metric(f"Média {get_metric_emoji(mean_acc)}", f"{mean_acc:.1f}%")
+                    
+                    with col2:
+                        st.metric(f"Mediana {get_metric_emoji(median_acc)}", f"{median_acc:.1f}%")
+                    
+                    with col3:
+                        st.metric("Mínimo", f"{min_acc:.1f}%")
+                    
+                    with col4:
+                        st.metric("Máximo", f"{max_acc:.1f}%")
+                    
+                    with col5:
+                        st.metric("Desvio Padrão", f"{std_acc:.2f}")
+                    
+                    st.markdown("---")
+                    
+                    col1, col2, col3, col4, col5, col6 = st.columns(6)
+                    
+                    with col1:
+                        st.metric("Total", len(acc_values))
+                    
+                    with col2:
+                        st.metric("🟢 ≥80%", excellent)
+                    
+                    with col3:
+                        st.metric("🟡 60-79%", good)
+                    
+                    with col4:
+                        st.metric("🟠 40-59%", fair)
+                    
+                    with col5:
+                        st.metric("🔴 <40%", poor)
+                    
+                    with col6:
+                        st.metric("Taxa ≥60%", f"{pass_rate:.1f}%")
+            
+            st.markdown("---")
+            st.subheader(f"Resultados de {selected_file}")
             display_df = df[['Query', 'Received Response', 'Expected Response', 'Meaning Acc (%)']]
-
             display_df = display_df.replace('\n', '<br>', regex=True)
-
             display_df['Meaning Acc (%)'] = display_df['Meaning Acc (%)'].apply(color_acc)
             table_html = display_df.to_html(index=False, escape=False)
         
