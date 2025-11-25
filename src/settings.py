@@ -5,6 +5,7 @@ load_dotenv()
 # Loader
 # converted pdfs to markdown cache directory
 MD_CACHE_DIR = "outputs/mineru/"
+MD_CLEANED_DIR = "outputs/mineru_cleaned/"
 
 # docker or local (mac only)
 MINERU_MODE = "local"
