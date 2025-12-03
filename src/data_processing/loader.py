@@ -1,19 +1,25 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
-from typing import List, Any
+from typing import List
 from src.logger import log
-from pathlib import Path
 from src.utils import generate_file_hash
-from src.data_processing.mineru import pdf_to_md
+from src.data_processing.mineru_processor import pdf_to_md
 from src.data_processing.cleaner import apply_cleaning
 
 import src.settings as settings
-import requests
 import os
-import traceback
 
 
 def load_document(file_path: str) -> List[Document]:
+    if settings.LOADER_TYPE == "mineru":
+        log("Using MinerU loader.", level="info")
+        return load_document_mineru(file_path)
+    else:
+        log("Using PDF Loader.", level="info")
+        return load_document_pdfloader(file_path)
+
+
+def load_document_pdfloader(file_path: str) -> List[Document]:
     """
     Loads a document from the specified file path.
     Currently supports PDF files.
@@ -56,15 +62,20 @@ def load_document_mineru(file_path: str) -> List[Document]:
         return [Document(page_content=markdown_content, metadata={"source": file_path})]
     
 
-    # if first time loading, use mineru to load
-    markdown_content= pdf_to_md(file_path)
+    if settings.MINERU_BACKEND == "vlm-http-client":
+        log(f"Processing document with MinerU VLM HTTP Client: {file_path}", level="info")
+        markdown_content= pdf_to_md(pdf_path=file_path, backend="vlm-http-client", server_url=settings.MINERU_VLM_HTTP_URL)
+
+    else:
+        log(f"Processing document with MinerU Pipeline: {file_path}", level="info")
+        markdown_content= pdf_to_md(pdf_path=file_path)
+
     _save_cache(cached_md_path, markdown_content)
     
     #### apply cleaning step
     markdown_content = apply_cleaning(file_path, markdown_content)
     _save_cache(cache_cleaned_md_path, markdown_content)
 
-        
     return [Document(page_content=markdown_content, metadata={"source": file_path})]
 
 

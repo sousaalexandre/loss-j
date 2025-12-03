@@ -1,8 +1,10 @@
+import asyncio
 import copy
 import json
 import os
+import httpx
+import requests
 from pathlib import Path
-
 from loguru import logger
 
 from mineru.cli.common import convert_pdf_bytes_to_bytes_by_pypdfium2, prepare_env, read_fn
@@ -16,6 +18,17 @@ from mineru.backend.pipeline.model_json_to_middle_json import result_to_middle_j
 from mineru.backend.vlm.vlm_middle_json_mkcontent import union_make as vlm_union_make
 
 
+def _check_vlm_server_health(server_url: str, timeout: int = 10) -> bool:
+    """Check if the VLM server is alive."""
+    try:
+        health_url = f"{server_url.rstrip('/')}/health"
+        response = requests.get(health_url, timeout=timeout)
+        response.raise_for_status()
+        logger.info(f"VLM server health check passed: {health_url}")
+        return True
+    except Exception as e:
+        raise ConnectionError(f"VLM server unreachable: {e}")
+
 def pdf_to_md(
     pdf_path: str,
     output_dir: str = "output",
@@ -27,7 +40,7 @@ def pdf_to_md(
     server_url: str | None = None,
     start_page_id: int = 0,
     end_page_id: int | None = None,
-    make_md_mode: MakeMode = MakeMode.MM_MD,
+    make_md_mode: MakeMode = MakeMode.MM_MD
 ) -> str:
     """
     Parse a single PDF file and return the markdown content.
@@ -53,7 +66,21 @@ def pdf_to_md(
     Returns:
         str: The markdown content extracted from the PDF
     """
+    
+    vlm_health_checked = False
+
+
     try:
+        if backend == "vlm-http-client" and not vlm_health_checked:
+            if not server_url:
+                raise ValueError("server_url is required for vlm-http-client backend")
+            try:
+                _check_vlm_server_health(server_url)
+                vlm_health_checked = True
+            except Exception as e:
+                logger.warning(f"VLM health check failed: {e}. Falling back to pipeline backend.")
+                backend = "pipeline"
+
         pdf_name = Path(pdf_path).stem
         pdf_bytes = read_fn(pdf_path)
 
@@ -108,11 +135,26 @@ def pdf_to_md(
             md_content_str = vlm_union_make(pdf_info, make_md_mode, image_dir)
             logger.info(f"VLM parsing complete for {pdf_path}")
             return md_content_str
-
+    except (httpx.ReadError, httpx.ConnectError, httpx.TimeoutException, asyncio.TimeoutError) as e:
+        logger.warning(f"VLM processing failed: {type(e).__name__}. Falling back to pipeline backend.")
+        backend = "pipeline"
+        return pdf_to_md(
+            pdf_path=pdf_path,
+            output_dir=output_dir,
+            lang=lang,
+            backend=backend,
+            method=method,
+            formula_enable=formula_enable,
+            table_enable=table_enable,
+            server_url=server_url,
+            start_page_id=start_page_id,
+            end_page_id=end_page_id,
+            make_md_mode=make_md_mode
+        )
     except Exception as e:
-        logger.error(f"Error parsing PDF {pdf_path}: {e}")
+        logger.error(f"Error parsing PDF: {e}")
         raise
-
+        
 
 
 
@@ -297,14 +339,15 @@ def _process_output_default(
 
 if __name__ == '__main__':
     # Configuration
-    filename = "test_table.pdf"
+    filename = "test1.pdf"
     output_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
 
     # Example 1: Pipeline backend (default, most general)
-    parse_single_pdf_default(filename, output_root, backend="pipeline")
+    #parse_single_pdf_default(filename, output_root, backend="pipeline")
 
     # Example 2: VLM backends (uncomment to use)
     # parse_single_pdf(filename, output_root, backend="vlm-transformers")
     # parse_single_pdf(filename, output_root, backend="vlm-mlx-engine")  # macOS 13.5+
     # parse_single_pdf(filename, output_root, backend="vlm-vllm-engine")
-    # parse_single_pdf(filename, output_root, backend="vlm-http-client", server_url="http://127.0.0.1:30000")
+    #parse_single_pdf_default(filename, output_root, backend="vlm-http-client", server_url="http://192.168.103.9:30000")
+    pdf_to_md(filename, output_root, backend="vlm-http-client", server_url="http://192.168.103.9:30000")
