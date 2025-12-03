@@ -1,60 +1,96 @@
 import re
 import fitz
 import difflib
+import src.settings as settings
+
 from bs4 import BeautifulSoup
 from pylatexenc.latex2text import LatexNodes2Text
+from typing import List, Dict, Any
+from pydantic import BaseModel, Field
 from src.logger import log
+from src.services.llm_generator import get_llm
 
 
 def apply_cleaning(pdf_path: str, markdown_content: str) -> list:
     """
     Applies full cleaning pipeline: hierarchy rebalancing, HTML table conversion, and LaTeX cleaning.
     """
-    # Step 1: Rebalance headers (expects list, so split)
-    lines = markdown_content.split('\n')
-    new_lines = rebalance_headers(pdf_path, lines)
-    if not isinstance(new_lines, list):
-        log("rebalance_headers returned non-list. Using original.", level="warning")
-        new_lines = lines
+
+    if settings.LOADER_TYPE == "pdfloader":
+        log("PDFLoader selected, skipping cleaning steps.", level="info")
+        return markdown_content
     
-    # Step 2: Convert HTML tables to Markdown tables
-    # Join lines into a single string for easier regex processing
-    markdown_content = '\n'.join(new_lines)
+
+    # Step 1: Hierarchy Rebalancing (if enabled)
+    if settings.ENABLE_HIERARCHY_REBUILDING:
+
+        lines = markdown_content.split('\n')
+
+        if settings.HIERARCHY_REBUILDING_MODE == "llm":
+            log("Rebuilding hierarchy using LLM...", level="info")
+            header_map: List[Dict[str, Any]] = []
+            
+            for i, line in enumerate(lines):
+                if line.strip().startswith("#"):
+                    header_map.append({"index": i, "text": line.strip()})
+            
+            if header_map:
+                flat_headers = [h["text"] for h in header_map]
+                new_headers = _rebuild_headers_with_llm(flat_headers)
+                
+                for i, corrected_header in enumerate(new_headers):
+                    original_index = header_map[i]["index"]
+                    lines[original_index] = corrected_header
+        else:
+            log("Rebuilding hierarchy using Font Detection...", level="info")
+            rebalanced = _rebuild_headers_with_font(pdf_path, lines)
+            if rebalanced:
+                lines = rebalanced
+        
+        markdown_content = '\n'.join(lines)
+
+
+    # Step 2: HTML Table Cleaning (if enabled)    
+    if settings.ENABLE_HTML_CLEANING:
+        log("Converting HTML tables to Markdown...", level="info")
+        def replace_html_table(match):
+            html_table = match.group(0)
+            try:
+                return _convert_html_table_to_markdown(html_table)
+            except Exception as e:
+                log(f"HTML table conversion failed: {e}", level="warning")
+                return html_table
+        
+        markdown_content = re.sub(
+            r'<table.*?</table>', 
+            replace_html_table, 
+            markdown_content, 
+            flags=re.DOTALL | re.IGNORECASE
+        )
     
-    # Replace HTML table blocks with Markdown tables
-    def replace_html_table(match):
-        html_table = match.group(0)
-        try:
-            return markdown_table_from_html(html_table)
-        except Exception as e:
-            log(f"HTML table conversion failed: {e}", level="warning")
-            return html_table
+    # Step 3: LaTeX Cleaning (if enabled)
+    if settings.ENABLE_LATEX_CLEANING:
+        log("Cleaning LaTeX expressions...", level="info")
+        def replace_latex(match):
+            latex_str = match.group(1)
+            try:
+                return _convert_latex_to_text(f"${latex_str}$")
+            except Exception as e:
+                log(f"LaTeX cleaning failed for '{latex_str}': {e}", level="warning")
+                return match.group(0)
+        
+        markdown_content = re.sub(r'\$(.*?)\$', replace_latex, markdown_content)
     
-    markdown_content = re.sub(
-        r'<table.*?</table>', 
-        replace_html_table, 
-        markdown_content, 
-        flags=re.DOTALL | re.IGNORECASE
-    )
     
-    # Step 3: Clean LaTeX expressions
-    def replace_latex(match):
-        latex_str = match.group(1)
-        try:
-            return latex_to_clean_text(f"${latex_str}$")
-        except Exception as e:
-            log(f"LaTeX cleaning failed for '{latex_str}': {e}", level="warning")
-            return match.group(0)
-    
-    markdown_content = re.sub(r'\$(.*?)\$', replace_latex, markdown_content)
-    
+    log("Cleaning pipeline complete", level="info")
     return markdown_content
 
 
 
 
 ## HIERARCHY REBALANCING UTILITIES
-def rebalance_headers(pdf_path, md):
+# rebalance using font detection
+def _rebuild_headers_with_font(pdf_path, md):
     # --- PHASE 1: Build Font Size Map from PDF ---
     log(f"Reading PDF layout: {pdf_path}...")
     doc = fitz.open(pdf_path)
@@ -158,9 +194,82 @@ def rebalance_headers(pdf_path, md):
 
 
 
+# --- LLM Structure Definition ---
+class HeaderAnalysis(BaseModel):
+    """Analysis for a single header line."""
+    original_id: int = Field(..., description="The exact ID provided in the input.")
+    suggested_prefix: str = Field(..., description="The correct markdown prefix (e.g., '#', '##', '###').")
+
+class DocumentStructure(BaseModel):
+    """The collection of analyzed headers."""
+    headers: List[HeaderAnalysis] = Field(..., description="List of analyzed headers.")
+
+
+def _rebuild_headers_with_llm(flat_headers: List[str]) -> List[str]:
+    """Sends flat headers to LLM to infer hierarchy."""
+    numbered_input = [
+        {"id": i, "text": text} 
+        for i, text in enumerate(flat_headers)
+    ]
+    input_block = str(numbered_input) # Convert list of dicts to string representation
+    
+    llm = get_llm()
+    llm = llm.bind(temperature=0)
+    llm_with_schema = llm.with_structured_output(DocumentStructure)
+
+    prompt_template = """
+    You are an expert document structurer specializing in European Portuguese texts.
+    
+    ### Task
+    I will provide a JSON list of headers with IDs and Text.
+    Your task is to determine the correct Markdown hierarchy level (#, ##, ###) for each ID based on context.
+    
+    ### Universal Logic
+    1. **Level 1 (#):** Macro structure (Titles, Capítulos, Anexos).
+    2. **Level 2 (##):** Meso structure (Specific Entities, Articles, Roles).
+    3. **Level 3+ (###):** Micro structure (Attributes, Details, Recurring items like 'Local', 'Requisitos').
+
+    ### Constraints
+    - **Output ONLY the ID and the new Prefix.** Do not return the text.
+    - **Strict ID Matching:** You must return an entry for every single ID in the input.
+    - **No Hallucinations:** Do not invent IDs that do not exist.
+
+    ### Input Data
+    {input_data}
+    """
+
+    try:
+        response = llm_with_schema.invoke(
+            prompt_template.format(input_data=input_block)
+        )
+        
+        # 3. Reconstruct the List
+        # Create a map for O(1) lookup: {id: prefix}
+        id_to_prefix = {item.original_id: item.suggested_prefix for item in response.headers}
+        
+        corrected_list = []
+        for i, original_text in enumerate(flat_headers):
+            # Clean the original text (remove existing # and spaces)
+            clean_text = original_text.lstrip('#').strip()
+            
+            # Get the new prefix from LLM, default to '#' if ID missing (fallback)
+            new_prefix = id_to_prefix.get(i, "#")
+            
+            # Rebuild string
+            corrected_list.append(f"{new_prefix} {clean_text}")
+            
+        return corrected_list
+
+    except Exception as e:
+        print(f"Structure inference failed: {e}")
+        return flat_headers
+
+
+
+
 
 ### HTML TABLE TO MARKDOWN UTILITIES
-def _parse_html_table(table):
+def _parse_html_table_structure(table):
     rows = table.find_all("tr")
     
     # First pass: determine grid dimensions
@@ -221,7 +330,7 @@ def _parse_html_table(table):
     return grid
 
 
-def _table_to_markdown(table_matrix):
+def _format_table_as_markdown(table_matrix):
     md = []
     headers = table_matrix[0]
     md.append("| " + " | ".join(headers) + " |")
@@ -233,17 +342,18 @@ def _table_to_markdown(table_matrix):
     return "\n".join(md)
 
 
-def markdown_table_from_html(html_table: str) -> str:
+def _convert_html_table_to_markdown(html_table: str) -> str:
     soup = BeautifulSoup(html_table, "html.parser")
     table = soup.find("table")
-    parsed = _parse_html_table(table)
-    markdown = _table_to_markdown(parsed)
+    parsed = _parse_html_table_structure(table)
+    markdown = _format_table_as_markdown(parsed)
     
     return markdown
 
 
+
 ## LATEX RELATED UTILITIES
-def latex_to_clean_text(latex):
+def _convert_latex_to_text(latex):
     text = LatexNodes2Text().latex_to_text(latex)
     text = re.sub(r"\^\s*∘", "°", text)
     return text
