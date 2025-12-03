@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 import pandas as pd
 import os
@@ -63,7 +64,8 @@ def get_metric_emoji(val):
 
 outputs_dir = 'outputs/results/'
 if os.path.exists(outputs_dir):
-    csv_files = sorted([f for f in os.listdir(outputs_dir) if f.endswith('.csv')], key=lambda f: f.split('_')[2] + f.split('_')[3].split('.')[0], reverse=True)
+    csv_files = [f for f in os.listdir(outputs_dir) if f.endswith('.csv')]
+    csv_files.sort(key=lambda f: int(re.search(r'v(\d+)', f).group(1)) if re.search(r'v(\d+)', f) else 0, reverse=True)
     if csv_files:
         selected_file = st.selectbox("Escolha um arquivo de resultados", csv_files)
         file_path = os.path.join(outputs_dir, selected_file)
