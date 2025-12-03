@@ -7,20 +7,11 @@ from src.logger import log
 
 def get_vector_store() -> Chroma:
     """
-    Connects to the existing ChromaDB vector store.
+    Connects to the ChromaDB vector store. Creates it if it doesn't exist.
 
     Returns:
         Chroma: An instance of the Chroma vector store.
-    
-    Raises:
-        FileNotFoundError: If the database path does not exist.
     """
-    if not os.path.exists(settings.VECTOR_DB_PATH):
-        raise FileNotFoundError(
-            f"Vector database not found at path: {settings.VECTOR_DB_PATH}. "
-            "Please run the ingestion script first."
-        )
-
     vector_store = Chroma(
         persist_directory=settings.VECTOR_DB_PATH,
         embedding_function=embedding_model.get_embedding_model()
@@ -30,11 +21,20 @@ def get_vector_store() -> Chroma:
 
 def store(chunks:list, embeddings) -> None:
     log("Storing document chunks in vector store...", level="info")
-    Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
-        persist_directory=settings.VECTOR_DB_PATH
-    )
+    
+    # Check if database exists
+    if os.path.exists(settings.VECTOR_DB_PATH):
+        vector_store = Chroma(
+            persist_directory=settings.VECTOR_DB_PATH,
+            embedding_function=embeddings
+        )
+        vector_store.add_documents(chunks)
+    else:
+        Chroma.from_documents(
+            documents=chunks,
+            embedding=embeddings,
+            persist_directory=settings.VECTOR_DB_PATH
+        )
 
 
 #### UTILS ######
