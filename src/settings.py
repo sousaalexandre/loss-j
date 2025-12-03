@@ -2,34 +2,70 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Loader
+
+# --- Loader Configuration ---
+# options: "pdfloader", "mineru"
+# default is "pdfloader"
+LOADER_TYPE = "mineru"
+
+# --- MinerU Configuration ---
 # converted pdfs to markdown cache directory
 MD_CACHE_DIR = "outputs/mineru/"
 MD_CLEANED_DIR = "outputs/mineru_cleaned/"
 
-# docker or local (mac only)
-MINERU_MODE = "local"
+# backend options: "pipeline", "vlm-http-client" (needs server running)
+# default is "pipeline"
+MINERU_BACKEND = "vlm-http-client"  
+MINERU_VLM_HTTP_URL = "http://192.168.103.9:30000"
+# --- End MinerU Configuration ---
 
-# using minerU on docker
-MINERU_LOCAL_API_URL = "http://localhost:8080/vlm"
+
+
+# --- Cleaning Configuration ---
+# Only applicable if using MinerU loader
+# True/False to enable/disable each cleaning step
+ENABLE_HTML_CLEANING = False
+ENABLE_LATEX_CLEANING = False
+ENABLE_HIERARCHY_REBUILDING = False
+
+# Hierarchy rebuilding mode: "font" or "llm"
+# default is "font"
+HIERARCHY_REBUILDING_MODE = "font"
+# --- End Cleaning Configuration ---
 
 
 
-# Models Configuration
+# --- Splitting Configuration ---
+# options: "recursive", "markdown_recursive"
+# default is "recursive"
+SPLITTING_TYPE = "markdown_recursive" 
 
-LLM_MODEL_NAME = "gpt-4o-mini"
-EMBEDDING_MODEL_NAME = "text-embedding-3-small"
-
-# --- Vector Database Configuration ---
-# The path where the ChromaDB vector store will be persisted
-VECTOR_DB_PATH = "vectorstore_db"
 
 # --- Text Splitting Configuration ---
-# The target size for each text chunk in characters
 CHUNK_SIZE = 1000
-# The number of characters to overlap between adjacent chunks
 CHUNK_OVERLAP = 200
+# --- End Text Splitting Configuration ---
+
+
+
+
+
+# --- Models Configuration ---
+LLM_MODEL_NAME = "gpt-4o-mini"
+EMBEDDING_MODEL_NAME = "text-embedding-3-small"
+# --- End Models Configuration ---
+
+
+
+# --- Vector Database Configuration ---
+VECTOR_DB_PATH = "vectorstore_db"
+# --- End Vector Database Configuration ---
+
+
+
+
 
 
 # --- Retriever Configuration ---
-RETRIEVER_K = 5  # Number of relevant documents to retrieve
+RETRIEVER_K = 5
+# --- End Retriever Configuration ---
