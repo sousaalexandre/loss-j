@@ -188,8 +188,8 @@
     "expected": "O Infotipo utilizado para registar ausências é o IT 2001 - Ausências."
   },
   {
-    "query": "Qual é o tipo de ausência para registar descanso compensatório no SIGRHV?",
-    "expected": "O tipo de ausência para registar descanso compensatório é 1179 - Descanso compensatório no IT 2001 - Ausências."
+  "query": "Em que Infotipo do SIGRHV devem ser registadas ausências, como por exemplo o descanso compensatório?",
+  "expected": "As ausências devem ser registadas no IT 2001 - Ausências."
   },
   {
     "query": "Quais são os requisitos de altura para oficiais na área funcional Sapador de Engenharia?",
