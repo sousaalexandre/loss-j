@@ -216,5 +216,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 temp_uploads/
+mineru_temp_output/
+output/
 
 .DS_Store

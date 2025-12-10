@@ -9,15 +9,7 @@ def get_retriever() -> VectorStoreRetriever:
     """
     Creates and returns a retriever from the persisted ChromaDB vector store.
 
-    This function connects to the existing database, initializes it with the
-    correct embedding model, and returns an object capable of searching for
-    relevant documents.
-
-    Returns:
-        VectorStoreRetriever: An object configured to search the vector database.
-    
-    Raises:
-        FileNotFoundError: If the database path does not exist.
+    Optionally filters by `category` metadata (e.g., 'Praças', 'Sargentos', 'Oficiais').
     """
     if not os.path.exists(settings.VECTOR_DB_PATH):
         raise FileNotFoundError(
@@ -33,6 +25,7 @@ def get_retriever() -> VectorStoreRetriever:
     )
 
     return vector_store.as_retriever(search_kwargs={"k": settings.RETRIEVER_K})
+
 
 
 
