@@ -56,8 +56,8 @@
     "expected": "O Infotipo utilizado para registar contingentes de presença é o IT 2007 - Contingentes de presença."
   },
   {
-    "query": "Que tipo de contingente deve ser utilizado para averbar trabalho suplementar interno?",
-    "expected": "Para averbar trabalho suplementar interno deve ser utilizado o tipo 1201 - Trab Supl - Interno no IT 2002 - Presenças."
+  "query": "Qual é o Infotipo do SIGRHV utilizado para registar contingentes de presença?",
+  "expected": "O Infotipo utilizado para registar contingentes de presença é o IT 2007 - Contingentes de presença."
   },
   {
     "query": "Quais são as penas disciplinares aplicáveis aos militares dos quadros permanentes nas situações do ativo ou de reserva?",
