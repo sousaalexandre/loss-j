@@ -5,20 +5,24 @@ import sys
 from pathlib import Path
 from src.pipelines.pipeline_indexing import RAGIndexingPipeline
 from src.logger import log
+from src import settings
 
 
 def main():
-    # Determine which mode to use based on what's available
-    gold_dir = Path("data_lakehouse/03_gold")
-    landing_zone = Path("data_lakehouse/00_landing_zone")
-    
-    # Check for gold layer markdown files
-    gold_md_files = list(gold_dir.glob("*/*.md")) if gold_dir.exists() else []
-    
-    # Decide: use ETL (gold) if available, otherwise use landing zone (PDFs)
-    use_etl = len(gold_md_files) > 0
+    # Determine mode based on LOADER_TYPE setting
+    # If pdfloader: use landing zone (PDFs)
+    # If anything else (mineru, etc): use gold layer (markdown from ETL)
+    use_etl = settings.LOADER_TYPE != "pdfloader"
     
     if use_etl:
+        # ETL mode: load from gold layer
+        gold_dir = Path("data_lakehouse/03_gold")
+        gold_md_files = list(gold_dir.glob("*/*.md")) if gold_dir.exists() else []
+        
+        if not gold_md_files:
+            log(f"ERROR: No markdown files found in gold layer", level="error")
+            sys.exit(1)
+        
         log(f"Found {len(gold_md_files)} markdown file(s) in gold layer - using ETL mode", level="info")
         
         try:
@@ -28,6 +32,7 @@ def main():
             log(f"\n{'='*60}", level="info")
             log(f"RAG Indexing Pipeline Summary (ETL Mode):", level="info")
             log(f"  Documents indexed: {results.get('total_indexed', 0)}", level="info")
+            log(f"  Documents replaced: {results.get('replaced', 0)}", level="info")
             log(f"  Total chunks created: {results.get('total_chunks', 0)}", level="info")
             log(f"  Failed: {results.get('failed', 0)}", level="info")
             log(f"  Status: {results.get('status', 'completed')}", level="info")
@@ -39,9 +44,11 @@ def main():
             log(f"RAG indexing pipeline failed: {e}", level="error")
             sys.exit(1)
     else:
-        # Use landing zone (PDF mode)
+        # PDF mode: load from landing zone
+        landing_zone = Path("data_lakehouse/00_landing_zone")
+        
         if not landing_zone.exists():
-            log(f"ERROR: Neither gold layer nor landing zone found", level="error")
+            log(f"ERROR: Landing zone not found at {landing_zone}", level="error")
             sys.exit(1)
         
         pdf_files = list(landing_zone.glob("*.pdf"))
@@ -59,6 +66,7 @@ def main():
             log(f"\n{'='*60}", level="info")
             log(f"RAG Indexing Pipeline Summary (PDF Mode):", level="info")
             log(f"  Documents indexed: {results.get('total_indexed', 0)}", level="info")
+            log(f"  Documents replaced: {results.get('replaced', 0)}", level="info")
             log(f"  Total chunks created: {results.get('total_chunks', 0)}", level="info")
             log(f"  Failed: {results.get('failed', 0)}", level="info")
             log(f"  Status: {results.get('status', 'completed')}", level="info")

@@ -20,15 +20,12 @@ def split_documents(documents: List[Document]) -> List[Document]:
     Supported strategies:
     - "recursive": Basic recursive character splitting
     - "markdown_recursive": Markdown-aware recursive splitting
-    - "markdown_hierarchical": Hierarchical splitting with context preservation (recommended for MinerU)
     """
-    if settings.LOADER_TYPE == "pdfloader":
-        log("Using basic recursive splitter (PDF mode)", level="info")
-        return _split_recursive(documents)
-    elif settings.SPLITTING_TYPE == "markdown_recursive":
+    if settings.SPLITTING_TYPE == "markdown_recursive":
         log("Using markdown-aware splitter", level="info")
         return _split_markdown(documents)
     else:
+        log("Using basic recursive splitter", level="info")
         return _split_recursive(documents)
 
 

@@ -82,18 +82,23 @@ class RAGIndexingPipeline:
         indexed_count = 0
         failed_count = 0
         total_chunks = 0
+        replaced_count = 0
         
         for i, file_path in enumerate(documents_to_index, 1):
             file_name = os.path.basename(file_path)
+            normalized_path = file_path.replace("\\", "/")
             
             # Check if already indexed
             if check_file_exists_vector_store(file_path):
                 log(f"[{i}/{len(documents_to_index)}] '{file_name}' already indexed. Replacing chunks...", level="info")
                 # Delete existing chunks for this file
-                vector_store = get_vector_store()
-                normalized_path = file_path.replace("\\", "/")
-                vector_store.delete(where={"source": normalized_path})
-                log(f"     Deleted existing chunks for {file_name}", level="info")
+                try:
+                    vector_store = get_vector_store()
+                    vector_store.delete(where={"source": normalized_path})
+                    log(f"     Deleted existing chunks for {file_name}", level="info")
+                    replaced_count += 1
+                except Exception as e:
+                    log(f"     Warning: Failed to delete existing chunks: {e}", level="warning")
             
             try:
                 log(f"[{i}/{len(documents_to_index)}] Indexing {file_name}...", level="info")
@@ -123,7 +128,7 @@ class RAGIndexingPipeline:
             "total_indexed": indexed_count,
             "total_chunks": total_chunks,
             "failed": failed_count,
-            "skipped": 0,
+            "replaced": replaced_count,
             "status": "completed"
         }
 
