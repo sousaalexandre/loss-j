@@ -456,7 +456,7 @@ def _load_user_metadata_for_chunk(source: str) -> dict:
         file_hash = source_file.stem
         
         # Construct path to metadata JSON
-        metadata_file = Path("data_warehouse/00_landing_zone") / f"{file_hash}.json"
+        metadata_file = Path("data_lakehouse/00_landing_zone") / f"{file_hash}.json"
         
         if metadata_file.exists():
             with open(metadata_file, 'r', encoding='utf-8') as f:

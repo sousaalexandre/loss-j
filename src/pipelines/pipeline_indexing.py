@@ -20,7 +20,7 @@ class RAGIndexingPipeline:
         
         if use_etl:
             # Load from gold directory (ETL output)
-            self.source_dir = Path("data_warehouse/03_gold")
+            self.source_dir = Path("data_lakehouse/03_gold")
             self.env_name = "production"
             
             if not self.source_dir.exists():
@@ -28,7 +28,7 @@ class RAGIndexingPipeline:
                 self.source_dir.mkdir(parents=True, exist_ok=True)
         else:
             # Load from landing zone (direct PDF indexing)
-            self.source_dir = Path("data_warehouse/00_landing_zone")
+            self.source_dir = Path("data_lakehouse/00_landing_zone")
             self.env_name = "raw"
             
             if not self.source_dir.exists():

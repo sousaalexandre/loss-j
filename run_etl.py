@@ -8,7 +8,7 @@ from src.logger import log
 
 
 def main():
-    landing_zone = Path("data_warehouse/00_landing_zone")
+    landing_zone = Path("data_lakehouse/00_landing_zone")
     
     if not landing_zone.exists():
         log(f"ERROR: Landing zone not found at {landing_zone}", level="error")

@@ -9,8 +9,8 @@ from src.logger import log
 
 def main():
     # Determine which mode to use based on what's available
-    gold_dir = Path("data_warehouse/03_gold")
-    landing_zone = Path("data_warehouse/00_landing_zone")
+    gold_dir = Path("data_lakehouse/03_gold")
+    landing_zone = Path("data_lakehouse/00_landing_zone")
     
     # Check for gold layer markdown files
     gold_md_files = list(gold_dir.glob("*/*.md")) if gold_dir.exists() else []

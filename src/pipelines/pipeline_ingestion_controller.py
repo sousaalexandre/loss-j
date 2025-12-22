@@ -45,7 +45,7 @@ def run_ingestion(pdf_files: list, file_metadata: dict = None, progress_callback
         }
     
     # Organize files only if metadata provided (new uploads) or if files not in landing zone
-    landing_zone = Path("data_warehouse/00_landing_zone")
+    landing_zone = Path("data_lakehouse/00_landing_zone")
     all_in_landing_zone = all(Path(f).parent == landing_zone for f in pdf_files)
     
     if file_metadata or not all_in_landing_zone:
@@ -77,7 +77,7 @@ def _organize_files_in_landing_zone(pdf_files: list, file_metadata: dict) -> lis
     Returns:
         List of PDF paths in landing zone
     """
-    landing_zone = Path("data_warehouse/00_landing_zone")
+    landing_zone = Path("data_lakehouse/00_landing_zone")
     landing_zone.mkdir(parents=True, exist_ok=True)
     
     # Load or initialize catalog

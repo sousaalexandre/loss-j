@@ -25,10 +25,10 @@ class ETLPipeline:
             force_clean: If True, re-apply cleaning even if settings unchanged
         """
         # Setup simple directory structure (no versioning)
-        self.landing_zone = Path("data_warehouse/00_landing_zone")
-        self.bronze_dir = Path("data_warehouse/01_bronze")
-        self.gold_dir = Path("data_warehouse/03_gold")
-        self.config_path = Path("data_warehouse/config.json")
+        self.landing_zone = Path("data_lakehouse/00_landing_zone")
+        self.bronze_dir = Path("data_lakehouse/01_bronze")
+        self.gold_dir = Path("data_lakehouse/03_gold")
+        self.config_path = Path("data_lakehouse/config.json")
         self.force_clean = force_clean
         
         # Use provided config or create from settings
@@ -76,7 +76,7 @@ class ETLPipeline:
         return None
     
     def _save_config(self) -> None:
-        """Save config.json to data_warehouse directory."""
+        """Save config.json to data_lakehouse directory."""
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.config_path, 'w') as f:
             json.dump(self.config, f, indent=2, ensure_ascii=False)
