@@ -25,7 +25,7 @@ MINERU_BACKEND = "pipeline"
 MINERU_VLM_HTTP_URL = "http://192.168.103.9:30000"
 
 # ETL Cleaning Options (applied after PDF→MD conversion)
-ENABLE_HTML_CLEANING = True
+ENABLE_HTML_CLEANING = False
 ENABLE_LATEX_CLEANING = False
 ENABLE_HIERARCHY_REBUILDING = False
 HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
@@ -39,9 +39,7 @@ HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
 # Splitting strategy
 # "recursive": Basic recursive text splitter
 # "markdown_recursive": Markdown-aware splitter (preserves structure)
-# "markdown_hierarchical": Hierarchical markdown with context & category detection (recommended for MinerU)
-# "markdown_hierarchical_with_metadata": Hierarchical markdown with user metadata from landing zone
-SPLITTING_TYPE = "markdown_hierarchical_with_metadata"
+SPLITTING_TYPE = "recursive"
 
 # Chunk parameters
 CHUNK_SIZE = 1000          # Characters per chunk
