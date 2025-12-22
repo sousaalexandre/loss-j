@@ -3,69 +3,65 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# --- Loader Configuration ---
-# options: "pdfloader", "mineru"
-# default is "pdfloader"
+# ============================================================================
+# INGESTION & ENVIRONMENT SETTINGS
+# ============================================================================
+
+# Loader type determines the ingestion pipeline
+# "mineru": PDF → Markdown (ETL) → Cleaning → Indexing (recommended for complex PDFs)
+# "pdfloader": PDF → Indexing directly (faster, no cleaning)
 LOADER_TYPE = "mineru"
 
-# --- MinerU Configuration ---
-# converted pdfs to markdown cache directory
-MD_CACHE_DIR = "outputs/mineru/"
-MD_CLEANED_DIR = "outputs/mineru_cleaned/"
 
-# backend options: "pipeline", "vlm-http-client" (needs server running)
-# default is "pipeline"
-MINERU_BACKEND = "vlm-http-client"  
+# ============================================================================
+# MINERU ETL CONFIGURATION
+# ============================================================================
+# Only applicable when LOADER_TYPE = "mineru"
+
+# MinerU conversion backend
+# "vlm-http-client": Use remote VLM server (faster, requires server running)
+# "pipeline": Use local pipeline (slower but no dependencies)
+MINERU_BACKEND = "pipeline"
 MINERU_VLM_HTTP_URL = "http://192.168.103.9:30000"
-# --- End MinerU Configuration ---
 
-
-
-# --- Cleaning Configuration ---
-# Only applicable if using MinerU loader
-# True/False to enable/disable each cleaning step
-ENABLE_HTML_CLEANING = False
+# ETL Cleaning Options (applied after PDF→MD conversion)
+ENABLE_HTML_CLEANING = True
 ENABLE_LATEX_CLEANING = False
 ENABLE_HIERARCHY_REBUILDING = False
-
-# Hierarchy rebuilding mode: "font" or "llm"
-# default is "font"
-HIERARCHY_REBUILDING_MODE = "font"
-# --- End Cleaning Configuration ---
+HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
 
 
+# ============================================================================
+# RAG DOCUMENT SPLITTING CONFIGURATION
+# ============================================================================
+# Controls how documents are split for retrieval
 
-# --- Splitting Configuration ---
-# options: "recursive", "markdown_recursive"
-# default is "recursive"
-SPLITTING_TYPE = "markdown_recursive" 
+# Splitting strategy
+# "recursive": Basic recursive text splitter
+# "markdown_recursive": Markdown-aware splitter (preserves structure)
+# "markdown_hierarchical": Hierarchical markdown with context & category detection (recommended for MinerU)
+# "markdown_hierarchical_with_metadata": Hierarchical markdown with user metadata from landing zone
+SPLITTING_TYPE = "markdown_hierarchical_with_metadata"
+
+# Chunk parameters
+CHUNK_SIZE = 1000          # Characters per chunk
+CHUNK_OVERLAP = 200        # Characters of overlap between chunks
 
 
-# --- Text Splitting Configuration ---
-CHUNK_SIZE = 1000
-CHUNK_OVERLAP = 200
-# --- End Text Splitting Configuration ---
+# ============================================================================
+# LLM & EMBEDDING MODELS
+# ============================================================================
 
-
-
-
-
-# --- Models Configuration ---
 LLM_MODEL_NAME = "gpt-4o-mini"
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
-# --- End Models Configuration ---
 
 
+# ============================================================================
+# VECTOR DATABASE & RETRIEVAL
+# ============================================================================
 
-# --- Vector Database Configuration ---
+# Vector database storage path
 VECTOR_DB_PATH = "vectorstore_db"
-# --- End Vector Database Configuration ---
 
-
-
-
-
-
-# --- Retriever Configuration ---
+# Number of documents to retrieve for RAG
 RETRIEVER_K = 5
-# --- End Retriever Configuration ---

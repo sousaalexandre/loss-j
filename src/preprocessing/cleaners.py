@@ -8,79 +8,135 @@ from pylatexenc.latex2text import LatexNodes2Text
 from typing import List, Dict, Any
 from pydantic import BaseModel, Field
 from src.logger import log
-from src.services.llm_generator import get_llm
+from src.services.llm_gateway import get_llm
 
 
-def apply_cleaning(pdf_path: str, markdown_content: str) -> list:
+def clean_html(markdown_content: str) -> str:
+    """
+    Convert HTML tables to Markdown format.
+    
+    Args:
+        markdown_content (str): The markdown content with HTML tables
+        
+    Returns:
+        str: The markdown content with HTML tables converted to Markdown
+    """
+    log("Converting HTML tables to Markdown...", level="info")
+    
+    def replace_html_table(match):
+        html_table = match.group(0)
+        try:
+            return _convert_html_table_to_markdown(html_table)
+        except Exception as e:
+            log(f"HTML table conversion failed: {e}", level="warning")
+            return html_table
+    
+    markdown_content = re.sub(
+        r'<table.*?</table>', 
+        replace_html_table, 
+        markdown_content, 
+        flags=re.DOTALL | re.IGNORECASE
+    )
+    
+    return markdown_content
+
+
+def clean_latex(markdown_content: str) -> str:
+    """
+    Clean LaTeX expressions in the markdown content.
+    
+    Args:
+        markdown_content (str): The markdown content with LaTeX expressions
+        
+    Returns:
+        str: The markdown content with LaTeX expressions cleaned
+    """
+    log("Cleaning LaTeX expressions...", level="info")
+    
+    def replace_latex(match):
+        latex_str = match.group(1)
+        try:
+            return _convert_latex_to_text(f"${latex_str}$")
+        except Exception as e:
+            log(f"LaTeX cleaning failed for '{latex_str}': {e}", level="warning")
+            return match.group(0)
+    
+    markdown_content = re.sub(r'\$(.*?)\$', replace_latex, markdown_content)
+    
+    return markdown_content
+
+
+def rebuild_hierarchy(markdown_content: str, pdf_path: str = None, mode: str = None) -> str:
+    """
+    Rebuild the document hierarchy using font detection or LLM.
+    
+    Args:
+        markdown_content (str): The markdown content
+        pdf_path (str): Path to the PDF file (required for font detection mode)
+        mode (str): "font" or "llm" (uses settings if not provided)
+        
+    Returns:
+        str: The markdown content with rebuilt hierarchy
+    """
+    mode = mode or settings.HIERARCHY_REBUILDING_MODE
+    
+    lines = markdown_content.split('\n')
+    
+    if mode == "llm":
+        log("Rebuilding hierarchy using LLM...", level="info")
+        header_map: List[Dict[str, Any]] = []
+        
+        for i, line in enumerate(lines):
+            if line.strip().startswith("#"):
+                header_map.append({"index": i, "text": line.strip()})
+        
+        if header_map:
+            flat_headers = [h["text"] for h in header_map]
+            new_headers = _rebuild_headers_with_llm(flat_headers)
+            
+            for i, corrected_header in enumerate(new_headers):
+                original_index = header_map[i]["index"]
+                lines[original_index] = corrected_header
+    else:
+        log("Rebuilding hierarchy using Font Detection...", level="info")
+        if not pdf_path:
+            log("PDF path required for font detection mode", level="warning")
+            return markdown_content
+        
+        rebalanced = _rebuild_headers_with_font(pdf_path, lines)
+        if rebalanced:
+            lines = rebalanced
+    
+    return '\n'.join(lines)
+
+
+def apply_cleaning(pdf_path: str, markdown_content: str) -> str:
     """
     Applies full cleaning pipeline: hierarchy rebalancing, HTML table conversion, and LaTeX cleaning.
-    """
-
-    if settings.LOADER_TYPE == "pdfloader":
-        log("PDFLoader selected, skipping cleaning steps.", level="info")
-        return markdown_content
     
+    Args:
+        pdf_path (str): Path to the PDF file
+        markdown_content (str): The markdown content to clean
+        
+    Returns:
+        str: The cleaned markdown content
+    """
 
     # Step 1: Hierarchy Rebalancing (if enabled)
     if settings.ENABLE_HIERARCHY_REBUILDING:
-
-        lines = markdown_content.split('\n')
-
-        if settings.HIERARCHY_REBUILDING_MODE == "llm":
-            log("Rebuilding hierarchy using LLM...", level="info")
-            header_map: List[Dict[str, Any]] = []
-            
-            for i, line in enumerate(lines):
-                if line.strip().startswith("#"):
-                    header_map.append({"index": i, "text": line.strip()})
-            
-            if header_map:
-                flat_headers = [h["text"] for h in header_map]
-                new_headers = _rebuild_headers_with_llm(flat_headers)
-                
-                for i, corrected_header in enumerate(new_headers):
-                    original_index = header_map[i]["index"]
-                    lines[original_index] = corrected_header
-        else:
-            log("Rebuilding hierarchy using Font Detection...", level="info")
-            rebalanced = _rebuild_headers_with_font(pdf_path, lines)
-            if rebalanced:
-                lines = rebalanced
-        
-        markdown_content = '\n'.join(lines)
-
+        markdown_content = rebuild_hierarchy(
+            markdown_content, 
+            pdf_path, 
+            settings.HIERARCHY_REBUILDING_MODE
+        )
 
     # Step 2: HTML Table Cleaning (if enabled)    
     if settings.ENABLE_HTML_CLEANING:
-        log("Converting HTML tables to Markdown...", level="info")
-        def replace_html_table(match):
-            html_table = match.group(0)
-            try:
-                return _convert_html_table_to_markdown(html_table)
-            except Exception as e:
-                log(f"HTML table conversion failed: {e}", level="warning")
-                return html_table
-        
-        markdown_content = re.sub(
-            r'<table.*?</table>', 
-            replace_html_table, 
-            markdown_content, 
-            flags=re.DOTALL | re.IGNORECASE
-        )
+        markdown_content = clean_html(markdown_content)
     
     # Step 3: LaTeX Cleaning (if enabled)
     if settings.ENABLE_LATEX_CLEANING:
-        log("Cleaning LaTeX expressions...", level="info")
-        def replace_latex(match):
-            latex_str = match.group(1)
-            try:
-                return _convert_latex_to_text(f"${latex_str}$")
-            except Exception as e:
-                log(f"LaTeX cleaning failed for '{latex_str}': {e}", level="warning")
-                return match.group(0)
-        
-        markdown_content = re.sub(r'\$(.*?)\$', replace_latex, markdown_content)
-    
+        markdown_content = clean_latex(markdown_content)
     
     log("Cleaning pipeline complete", level="info")
     return markdown_content

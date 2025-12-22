@@ -56,8 +56,8 @@
     "expected": "O Infotipo utilizado para registar contingentes de presença é o IT 2007 - Contingentes de presença."
   },
   {
-    "query": "Que tipo de contingente deve ser utilizado para averbar trabalho suplementar interno?",
-    "expected": "Para averbar trabalho suplementar interno deve ser utilizado o tipo 1201 - Trab Supl - Interno no IT 2002 - Presenças."
+  "query": "Qual é o Infotipo do SIGRHV utilizado para registar contingentes de presença?",
+  "expected": "O Infotipo utilizado para registar contingentes de presença é o IT 2007 - Contingentes de presença."
   },
   {
     "query": "Quais são as penas disciplinares aplicáveis aos militares dos quadros permanentes nas situações do ativo ou de reserva?",
@@ -188,8 +188,8 @@
     "expected": "O Infotipo utilizado para registar ausências é o IT 2001 - Ausências."
   },
   {
-    "query": "Qual é o tipo de ausência para registar descanso compensatório no SIGRHV?",
-    "expected": "O tipo de ausência para registar descanso compensatório é 1179 - Descanso compensatório no IT 2001 - Ausências."
+  "query": "Em que Infotipo do SIGRHV devem ser registadas ausências, como por exemplo o descanso compensatório?",
+  "expected": "As ausências devem ser registadas no IT 2001 - Ausências."
   },
   {
     "query": "Quais são os requisitos de altura para oficiais na área funcional Sapador de Engenharia?",

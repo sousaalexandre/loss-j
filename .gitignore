@@ -220,3 +220,5 @@ mineru_temp_output/
 output/
 
 .DS_Store
+
+vectorstore_db/

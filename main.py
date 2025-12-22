@@ -1,6 +1,37 @@
 import streamlit as st
-from src.chains.chain_retrieving_generating import query_handler
+from src.pipelines.pipeline_inference import query_handler
 import os
+import json
+from pathlib import Path
+
+def get_document_title(source_path: str) -> str:
+    """
+    Get the document title from metadata JSON.
+    Falls back to original_filename, then hash name if not found.
+    """
+    try:
+        # Extract hash from source path (e.g., "hash.md" or path containing hash)
+        source_file = Path(source_path)
+        hash_name = source_file.stem  # Get filename without extension
+        
+        # Look for metadata JSON in landing zone
+        landing_zone = Path("data_warehouse/00_landing_zone")
+        metadata_file = landing_zone / f"{hash_name}.json"
+        
+        if metadata_file.exists():
+            with open(metadata_file, 'r', encoding='utf-8') as f:
+                metadata = json.load(f)
+                # Return title if available, otherwise original filename
+                if metadata.get("title"):
+                    return metadata["title"]
+                if metadata.get("original_filename"):
+                    return metadata["original_filename"]
+    except Exception as e:
+        # Silently fall back if any error
+        pass
+    
+    # Fall back to hash or filename
+    return os.path.basename(source_path)
 
 def main():
     st.set_page_config(page_title="LOSS-J", page_icon="💬")
@@ -32,9 +63,10 @@ def main():
                         st.subheader("Fontes:")
                         sources_text = ""
                         for doc in documents:
-                            file_name = os.path.basename(doc.metadata.get('source', 'Fonte Desconhecida'))
-                            st.write(f"- **{file_name}**")
-                            sources_text += f"- **{file_name}**\n"
+                            source_path = doc.metadata.get('source', 'Fonte Desconhecida')
+                            file_title = get_document_title(source_path)
+                            st.write(f"- **{file_title}**")
+                            sources_text += f"- **{file_title}**\n"
                         full_content += f"\n\n**Fontes:**\n{sources_text}"
                     st.session_state.messages.append({"role": "assistant", "content": full_content})
                 except FileNotFoundError:
