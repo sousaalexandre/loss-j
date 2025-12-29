@@ -39,7 +39,7 @@ HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
 # Splitting strategy
 # "recursive": Basic recursive text splitter
 # "markdown_recursive": Markdown-aware splitter (preserves structure)
-SPLITTING_TYPE = "recursive"
+SPLITTING_TYPE = "markdown_recursive"
 
 # Chunk parameters
 CHUNK_SIZE = 1000          # Characters per chunk
@@ -62,4 +62,4 @@ EMBEDDING_MODEL_NAME = "text-embedding-3-small"
 VECTOR_DB_PATH = "vectorstore_db"
 
 # Number of documents to retrieve for RAG
-RETRIEVER_K = 5
+RETRIEVER_K = 50

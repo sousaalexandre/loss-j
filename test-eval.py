@@ -1,13 +1,9 @@
 import json
 import pandas as pd
 import os
-import shutil
 from datetime import datetime
-from pathlib import Path
 from src.chains.chain_retrieving_generating import query_handler
-from src.chains.chain_indexing import index_file
-from src.services.llm_generator import get_llm
-from src import settings
+from src.services.llm_gateway import get_llm
 from pydantic import BaseModel, Field
 
 
@@ -77,71 +73,6 @@ def load_queries_from_json(json_file_path: str) -> list:
     return data
 
 
-def reset_vectorstore() -> None:
-    """
-    Resets the vectorstore by removing the database files and folder.
-    """
-    db_path = settings.VECTOR_DB_PATH
-    
-    if os.path.exists(db_path):
-        shutil.rmtree(db_path)
-        print(f"✓ Removed vectorstore directory: {db_path}")
-    else:
-        print(f"ℹ Vectorstore directory not found: {db_path}")
-
-
-def index_test_documents() -> None:
-    """
-    Indexes all PDFs from docs/test_documents directory.
-    """
-    test_docs_dir = "docs/test_documents"
-    
-    if not os.path.exists(test_docs_dir):
-        print(f"✗ Test documents directory not found: {test_docs_dir}")
-        return
-    
-    pdf_files = sorted(Path(test_docs_dir).glob("*.pdf"))
-    
-    if not pdf_files:
-        print(f"✗ No PDF files found in {test_docs_dir}")
-        return
-    
-    print(f"Found {len(pdf_files)} PDF files to index...\n")
-    
-    for i, pdf_path in enumerate(pdf_files, 1):
-        try:
-            print(f"[{i}/{len(pdf_files)}] Indexing: {pdf_path.name}")
-            index_file(str(pdf_path))
-            print(f"     ✓ Successfully indexed\n")
-        except Exception as e:
-            print(f"     ✗ Error indexing: {e}\n")
-    
-    print(f"Indexing completed! All {len(pdf_files)} documents processed.")
-
-
-def initialize_vectorstore() -> None:
-    """
-    Full initialization: resets vectorstore and indexes test documents.
-    """
-    print("=" * 60)
-    print("INITIALIZING VECTORSTORE")
-    print("=" * 60)
-    print()
-    
-    print("Step 1: Resetting vectorstore...")
-    reset_vectorstore()
-    print()
-    
-    print("Step 2: Indexing test documents...")
-    index_test_documents()
-    print()
-    
-    print("=" * 60)
-    print("VECTORSTORE INITIALIZATION COMPLETE")
-    print("=" * 60)
-    print()
-
-
     
 def run_tests(queries: list) -> pd.DataFrame:
     results = []
@@ -173,7 +104,7 @@ def main(json_file_path: str):
     queries = load_queries_from_json(json_file_path)
     results_df = run_tests(queries)
     
-    os.makedirs('outputs/results', exist_ok=True)
+    os.makedirs('outputs', exist_ok=True)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     output_path = f'outputs/results/test_results_{timestamp}.csv'
     
@@ -181,14 +112,5 @@ def main(json_file_path: str):
     print(f"Results saved to {output_path}")
 
 if __name__ == "__main__":
-    import sys
-    
-    # Check for --reset flag
-    reset_flag = "--reset" in sys.argv
-    
-    if reset_flag:
-        print("Running evaluation with vectorstore reset and re-indexing...\n")
-        initialize_vectorstore()
-    
     json_file = 'query.json'
     main(json_file)

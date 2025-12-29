@@ -136,8 +136,8 @@
     "expected": "As bases do SAMMFA são: a avaliação individual (AI), a avaliação da formação (AF), a avaliação disciplinar (AD), a antiguidade no posto (AP) e a avaliação complementar (AC)."
   },
   {
-    "query": "Quantos pontos vale um louvor individual para efeitos de avaliação disciplinar?",
-    "expected": "Um louvor individual vale 2 pontos para efeitos de avaliação disciplinar."
+    "query": "Segundo a Lei Geral do Trabalho em Funções Públicas, qual é o limite máximo da sanção disciplinar de multa (por infração e por ano)?",
+    "expected": "A sanção de multa não pode exceder o valor correspondente a seis remunerações base diárias por cada infração e um valor total correspondente à remuneração base de 90 dias por ano."
   },
   {
     "query": "Como é calculada a antiguidade no posto para efeitos de promoção?",
