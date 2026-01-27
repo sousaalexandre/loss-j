@@ -38,6 +38,14 @@ TABLE_CSS = """
 """
 
 def color_acc(val):
+    """Format accuracy value with color-coded emoji indicator.
+    
+    Assigns emoji indicators based on accuracy threshold: 
+    🟢 for ≥80%
+    🟡 for ≥60%
+    🟠 for ≥40%
+    🔴 for <40%
+    """
     try:
         val = float(val)
         if val >= 80:
@@ -53,6 +61,10 @@ def color_acc(val):
         return val
 
 def get_metric_emoji(val):
+    """Return emoji indicator based on numeric accuracy value.
+    
+    Assigns emoji: 🟢 for ≥80%, 🟡 for ≥60%, 🟠 for ≥40%, 🔴 for <40%.
+    """
     if val >= 80:
         return '🟢'
     elif val >= 60:

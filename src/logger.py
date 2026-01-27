@@ -37,9 +37,20 @@ if not logger.handlers:
     logger.info(f"Logger initialized. Writing logs to {LOG_PATH}")
 
 def get_logger() -> logging.Logger:
+    """Get the global logger instance.
+    
+    Returns:
+        logging.Logger: Configured logger for the application
+    """
     return logger
 
 def log(message: str, level: str = "info"):
+    """Log a message at the specified level.
+    
+    Args:
+        message: The message to log
+        level: Log level as string (debug, info, warning, error, critical). Default is 'info'
+    """
     logger = get_logger()
     level = level.lower()
     if hasattr(logger, level):
@@ -48,10 +59,25 @@ def log(message: str, level: str = "info"):
         logger.info(message)
 
 def info(message: str):
+    """Log an info level message.
+    
+    Args:
+        message: The message to log
+    """
     get_logger().info(message)
 
 def warning(message: str):
+    """Log a warning level message.
+    
+    Args:
+        message: The message to log
+    """
     get_logger().warning(message)
 
 def error(message: str):
+    """Log an error level message.
+    
+    Args:
+        message: The message to log
+    """
     get_logger().error(message)

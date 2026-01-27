@@ -8,6 +8,17 @@ from src.logger import log
 
 
 def main():
+    """Execute the ETL pipeline on all PDFs in the landing zone.
+    
+    This function discovers all PDF files in the landing zone directory,
+    initializes the ETL pipeline, processes the documents, and logs a summary
+    of the extraction metrics including total documents, successful extractions,
+    and failed extractions.
+    
+    Raises:
+        SystemExit: If the landing zone directory does not exist, no PDFs are found,
+                    or the ETL pipeline encounters an error.
+    """
     landing_zone = Path("data_lakehouse/00_landing_zone")
     
     if not landing_zone.exists():

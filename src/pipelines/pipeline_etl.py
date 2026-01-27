@@ -35,7 +35,13 @@ class ETLPipeline:
         self.config = config or self._create_config_from_settings()
         
     def _create_config_from_settings(self) -> dict:
-        """Create config dict from current settings with last_etl_run timestamp."""
+        """Create config dict from current settings with last_etl_run timestamp.
+        
+        Reads configuration from settings module and initializes extraction metrics.
+        
+        Returns:
+            dict: Configuration dictionary with etl_settings and extraction_metrics
+        """
         return {
             "last_etl_run": None,
             "etl_settings": {
@@ -54,7 +60,11 @@ class ETLPipeline:
         }
     
     def _load_gold_catalog(self) -> dict:
-        """Load existing gold catalog if it exists."""
+        """Load existing gold catalog if it exists.
+        
+        Returns:
+            dict: Gold catalog metadata, or empty dict if catalog doesn't exist
+        """
         catalog_path = self.gold_dir / "_catalog.json"
         if catalog_path.exists():
             with open(catalog_path, 'r', encoding='utf-8') as f:
@@ -62,35 +72,57 @@ class ETLPipeline:
         return {}
     
     def _save_gold_catalog(self, catalog: dict) -> None:
-        """Save gold catalog to _catalog.json."""
+        """Save gold catalog to _catalog.json.
+        
+        Args:
+            catalog: Dictionary containing metadata for all processed documents
+        """
         catalog_path = self.gold_dir / "_catalog.json"
         self.gold_dir.mkdir(parents=True, exist_ok=True)
         with open(catalog_path, 'w', encoding='utf-8') as f:
             json.dump(catalog, f, indent=2, ensure_ascii=False)
     
     def _load_existing_config(self) -> dict:
-        """Load existing config.json if it exists."""
+        """Load existing config.json if it exists.
+        
+        Returns:
+            dict: Existing configuration, or None if config.json doesn't exist
+        """
         if self.config_path.exists():
             with open(self.config_path, 'r') as f:
                 return json.load(f)
         return None
     
     def _save_config(self) -> None:
-        """Save config.json to data_lakehouse directory."""
+        """Save config.json to data_lakehouse directory.
+        
+        Persists current configuration including ETL settings and extraction metrics
+        for future reference and caching logic.
+        """
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.config_path, 'w') as f:
             json.dump(self.config, f, indent=2, ensure_ascii=False)
         log(f"Config saved to {self.config_path}", level="info")
     
     def _config_matches_settings(self) -> bool:
-        """Check if existing config matches current settings."""
+        """Check if existing config matches current settings.
+        
+        Returns:
+            bool: True if config exists and matches current settings, False otherwise
+        """
         existing = self._load_existing_config()
         if not existing:
             return False
         return existing.get("etl_settings") == self.config.get("etl_settings")
     
     def _extraction_backend_unchanged(self) -> bool:
-        """Check if extraction backend (mineru_backend) hasn't changed."""
+        """Check if extraction backend (mineru_backend) hasn't changed.
+        
+        Used to determine if bronze cache can be reused without re-extraction.
+        
+        Returns:
+            bool: True if backend matches previous config, False otherwise
+        """
         existing = self._load_existing_config()
         if not existing:
             return False
@@ -99,7 +131,14 @@ class ETLPipeline:
         return existing_backend == current_backend
     
     def _cleaning_settings_unchanged(self) -> bool:
-        """Check if cleaning/finalization settings haven't changed."""
+        """Check if cleaning/finalization settings haven't changed.
+        
+        Compares HTML, LaTeX, and hierarchy rebuilding settings with previous config.
+        Used to determine if gold directory needs to be regenerated.
+        
+        Returns:
+            bool: True if all cleaning settings match previous config, False otherwise
+        """
         existing = self._load_existing_config()
         if not existing:
             return False
@@ -119,7 +158,18 @@ class ETLPipeline:
         return True
     
     def _get_cleaned_markdown(self, markdown_content: str, pdf_path: str = None) -> str:
-        """Apply cleaning steps based on config."""
+        """Apply cleaning steps based on config.
+        
+        Sequentially applies enabled cleaning operations: HTML cleaning, LaTeX cleaning,
+        and hierarchy rebuilding based on ETL settings.
+        
+        Args:
+            markdown_content: Raw markdown extracted from PDF
+            pdf_path: Path to source PDF (required for font-based hierarchy rebuilding)
+            
+        Returns:
+            str: Cleaned and finalized markdown content
+        """
         config = self.config["etl_settings"]
         content = markdown_content
         
@@ -138,7 +188,14 @@ class ETLPipeline:
         return content
     
     def _all_files_processed(self, pdf_files: list) -> bool:
-        """Check if all provided PDF files are already processed in gold directory."""
+        """Check if all provided PDF files are already processed in gold directory.
+        
+        Args:
+            pdf_files: List of PDF file paths to check
+            
+        Returns:
+            bool: True if all files have corresponding entries in gold directory
+        """
         from src.utils import generate_file_hash
         
         for pdf_path in pdf_files:

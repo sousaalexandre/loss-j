@@ -145,8 +145,19 @@ def apply_cleaning(pdf_path: str, markdown_content: str) -> str:
 
 
 ## HIERARCHY REBALANCING UTILITIES
-# rebalance using font detection
 def _rebuild_headers_with_font(pdf_path, md):
+    """Rebuild document hierarchy by analyzing font sizes in the PDF.
+    
+    Extracts font size information from the PDF and maps Markdown headers
+    to appropriate hierarchy levels based on detected font sizes.
+    
+    Args:
+        pdf_path: Path to the source PDF file
+        md: List of Markdown lines
+        
+    Returns:
+        list: Markdown lines with corrected header hierarchy
+    """
     # --- PHASE 1: Build Font Size Map from PDF ---
     log(f"Reading PDF layout: {pdf_path}...")
     doc = fitz.open(pdf_path)
@@ -262,7 +273,17 @@ class DocumentStructure(BaseModel):
 
 
 def _rebuild_headers_with_llm(flat_headers: List[str]) -> List[str]:
-    """Sends flat headers to LLM to infer hierarchy."""
+    """Use LLM to infer document hierarchy from flat headers.
+    
+    Sends headers to the language model to determine appropriate Markdown
+    hierarchy levels based on semantic structure and context.
+    
+    Args:
+        flat_headers: List of header texts without hierarchy markers
+        
+    Returns:
+        list: Header texts with appropriate Markdown prefixes applied
+    """
     numbered_input = [
         {"id": i, "text": text} 
         for i, text in enumerate(flat_headers)
@@ -326,6 +347,14 @@ def _rebuild_headers_with_llm(flat_headers: List[str]) -> List[str]:
 
 ### HTML TABLE TO MARKDOWN UTILITIES
 def _parse_html_table_structure(table):
+    """Parse HTML table structure into a 2D grid, handling rowspan and colspan.
+    
+    Args:
+        table: BeautifulSoup table element
+        
+    Returns:
+        list: 2D grid of table cell values
+    """
     rows = table.find_all("tr")
     
     # First pass: determine grid dimensions
@@ -387,6 +416,14 @@ def _parse_html_table_structure(table):
 
 
 def _format_table_as_markdown(table_matrix):
+    """Format a 2D table matrix as Markdown table syntax.
+    
+    Args:
+        table_matrix: 2D list representing table rows and columns
+        
+    Returns:
+        str: Markdown formatted table
+    """
     md = []
     headers = table_matrix[0]
     md.append("| " + " | ".join(headers) + " |")
@@ -410,6 +447,17 @@ def _convert_html_table_to_markdown(html_table: str) -> str:
 
 ## LATEX RELATED UTILITIES
 def _convert_latex_to_text(latex):
+    """Convert LaTeX expressions to plain text.
+    
+    Converts LaTeX notation to readable text and handles special cases
+    like degree symbols.
+    
+    Args:
+        latex: LaTeX expression string
+        
+    Returns:
+        str: Plain text representation of the LaTeX expression
+    """
     text = LatexNodes2Text().latex_to_text(latex)
     text = re.sub(r"\^\s*∘", "°", text)
     return text

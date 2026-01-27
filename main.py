@@ -34,6 +34,12 @@ def get_document_title(source_path: str) -> str:
     return os.path.basename(source_path)
 
 def main():
+    """Run the main Streamlit application for the LOSS-J RAG chatbot.
+    
+    Initializes the Streamlit page configuration and manages the chat interface,
+    including message history, user input handling, and response generation with
+    document sources.
+    """
     st.set_page_config(page_title="LOSS-J", page_icon="💬")
     st.title("LOSS-J RAG (Beta)")
 

@@ -194,12 +194,18 @@ uploaded_files = st.file_uploader(
 )
 
 def extract_pdf_title(filename: str) -> str:
-    """Extract a clean title from PDF filename."""
+    """Extract a clean title from PDF filename.
+    
+    Removes .pdf extension and replaces underscores and hyphens with spaces.
+    """
     title = filename.replace(".pdf", "").replace("_", " ").replace("-", " ")
     return " ".join(title.split())
 
 def parse_category_input(category_str: str) -> list:
-    """Parse comma-separated category string into list."""
+    """Parse comma-separated category string into list.
+    
+    Returns ['Geral'] if input is empty, otherwise splits by comma and strips whitespace.
+    """
     if not category_str.strip():
         return ["Geral"]
     return [cat.strip() for cat in category_str.split(",") if cat.strip()]
@@ -486,21 +492,12 @@ if summary:
         st.metric("Total de Ficheiros", summary['num_files'])
 
     file_details = summary.get('file_details', {})
-    search_query = st.text_input("Pesquisar ficheiros indexados por nome", key="file_search")
-
-    if search_query:
-        filtered_files = {
-            name: count for name, count in file_details.items()
-            if search_query.lower() in name.lower()
-        }
-    else:
-        filtered_files = file_details
 
     with st.expander("Ver Ficheiros Indexados"):
-        if not filtered_files:
-            st.info("Nenhum ficheiro correspondente encontrado." if search_query else "Nenhum ficheiro indexado ainda.")
+        if not file_details:
+            st.info("Nenhum ficheiro indexado ainda.")
         else:
-            for name, count in filtered_files.items():
+            for name, count in file_details.items():
                 file_title = get_document_title(name)
                 st.markdown(f"- **{file_title}.pdf** (*{count} chunks*)")
 else:

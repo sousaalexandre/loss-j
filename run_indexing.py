@@ -9,6 +9,19 @@ from src import settings
 
 
 def main():
+    """Execute the RAG indexing pipeline based on the configured loader type.
+    
+    Determines the indexing mode based on the LOADER_TYPE setting:
+    - If LOADER_TYPE is 'pdfloader': indexes PDFs from the landing zone (00_landing_zone)
+    - Otherwise: indexes markdown files from the gold layer (03_gold) processed by ETL
+    
+    Logs a summary of indexing results including total documents indexed,
+    documents replaced, total chunks created, and any failures.
+    
+    Raises:
+        SystemExit: If the required source directory does not exist, no documents
+                    are found, or the indexing pipeline encounters an error.
+    """
     # Determine mode based on LOADER_TYPE setting
     # If pdfloader: use landing zone (PDFs)
     # If anything else (mineru, etc): use gold layer (markdown from ETL)

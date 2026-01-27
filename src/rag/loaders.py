@@ -85,8 +85,18 @@ def load_document_markdown(file_path: str) -> List[Document]:
 
 
 def load_document_mineru(file_path: str) -> List[Document]:
-
-    # check cache first
+    """Load and process document using MinerU backend with caching.
+    
+    Converts PDF to Markdown using MinerU, applies cleaning operations,
+    and caches results for future use. Supports both VLM HTTP Client and
+    local pipeline backends based on settings.
+    
+    Args:
+        file_path: Path to the PDF file to process
+        
+    Returns:
+        List[Document]: A list containing a single Document object with processed Markdown content
+    """
     if cached_md_path and os.path.exists(cached_md_path):
         log(f"Cache hit. Loading Markdown from: {cached_md_path}", level="info")
         with open(cached_md_path, "r", encoding="utf-8") as f:
@@ -118,6 +128,14 @@ def load_document_mineru(file_path: str) -> List[Document]:
 
 
 def _save_cache(path, content):
+    """Save content to cache file.
+    
+    Creates parent directories if they don't exist and writes content to the specified path.
+    
+    Args:
+        path: File path where content should be cached
+        content: Content string to save
+    """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
