@@ -93,7 +93,7 @@ RAGIndexingPipeline(use_etl=True).run()
 ```
 
 **Stages:**
-1. **Load**: Read markdown from Gold layer (or PDFs if `use_etl=False`)
+1. **Load**: Read markdown from Gold layer or PDFs from Landing Zone if `use_etl=False`
 2. **Split**: Chunk documents using markdown-aware splitter
 3. **Embed**: Generate embeddings via OpenAI
 4. **Store**: Upsert into ChromaDB vector store
