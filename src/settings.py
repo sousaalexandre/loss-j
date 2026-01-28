@@ -8,9 +8,10 @@ load_dotenv()
 # ============================================================================
 
 # Loader type determines the ingestion pipeline
-# "mineru": PDF → Markdown (ETL) → Cleaning → Indexing (recommended for complex PDFs)
+# "mineru": PDF → Markdown (ETL) → Cleaning → Indexing 
 # "pdfloader": PDF → Indexing directly (faster, no cleaning)
-LOADER_TYPE = "mineru"
+# "docling": PDF → Markdown via Docling (ETL) → Indexing
+LOADER_TYPE = "docling"
 
 
 # ============================================================================
@@ -39,7 +40,8 @@ HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
 # Splitting strategy
 # "recursive": Basic recursive text splitter
 # "markdown_recursive": Markdown-aware splitter (preserves structure)
-SPLITTING_TYPE = "markdown_recursive"
+# "hierarchical": Hierarchical splitter (sections, subsections, etc.)
+SPLITTING_TYPE = "hierarchical"
 
 # Chunk parameters
 CHUNK_SIZE = 1000          # Characters per chunk

@@ -4,9 +4,7 @@
         "title": "Tabela Remuneratória dos Militares 2024",
         "description": "Documento detalhado com os valores de remuneração base e suplementos para todos os postos das Forças Armadas em 2024.",
         "category": [
-            "Remunerações",
-            "Recursos Humanos",
-            "Finanças"
+            "Remunerações"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.271299",
@@ -18,9 +16,7 @@
         "title": "Descrição das Especialidades do Regime de Contrato Especial (RCE)",
         "description": "Guia informativo sobre as situações funcionais e qualificações técnicas exigidas para as 14 especialidades de Praças no RCE.",
         "category": [
-            "Recrutamento",
-            "Especialidades",
-            "Formação Profissional"
+            "RCE"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.273717",
@@ -32,9 +28,7 @@
         "title": "Folheto Informativo: Especialidades de Praças do Exército",
         "description": "Guia ilustrado com a descrição das diversas especialidades disponíveis para a categoria de Praças, requisitos físicos e habilitações literárias.",
         "category": [
-            "Divulgação",
-            "Recrutamento",
-            "Especialidades"
+            "Praças"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.277534",
@@ -46,9 +40,7 @@
         "title": "Folheto Informativo: Áreas Funcionais de Sargentos do Exército",
         "description": "Documento informativo que detalha as diversas especialidades e áreas funcionais disponíveis para a categoria de Sargento no Exército Português.",
         "category": [
-            "Recrutamento",
-            "Especialidades",
-            "Orientação de Carreira"
+            "Sargentos"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.281080",
@@ -60,9 +52,7 @@
         "title": "Folheto Informativo: Áreas Funcionais de Oficiais do Exército",
         "description": "Documento de orientação sobre as áreas funcionais (Infantaria, Artilharia, Cavalaria, etc.) para candidatos à categoria de Oficial.",
         "category": [
-            "Divulgação",
-            "Carreiras Militares",
-            "Orientação Profissional"
+            "Oficiais"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.284541",
@@ -74,9 +64,7 @@
         "title": "Informação sobre Concurso de Praças RCE 2024",
         "description": "Documento interno sobre o planeamento e abertura de vagas para o Regime de Contrato Especial no Exército.",
         "category": [
-            "Recrutamento",
-            "Planeamento",
-            "Gestão de Efetivos"
+            "RCE"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.287561",
@@ -88,9 +76,7 @@
         "title": "Cronograma do 1º Concurso CFO/CEFO/CFS 2024",
         "description": "Linha temporal detalhada com as fases de seleção, provas e datas de incorporação para Oficiais e Sargentos.",
         "category": [
-            "Cronograma",
-            "Concursos",
-            "Gestão de Processos"
+            "Recrutamento"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.287909",
@@ -102,9 +88,7 @@
         "title": "Aviso de Concurso para Oficiais em Regime de Contrato",
         "description": "Documento oficial de recrutamento que define as vagas, especialidades e requisitos para a categoria de Oficial.",
         "category": [
-            "Recrutamento",
-            "Carreiras Militares",
-            "Concursos"
+            "Recrutamento"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.291898",
@@ -116,9 +100,7 @@
         "title": "Aviso de Concurso para Admissão de Sargentos em Regime de Contrato",
         "description": "Edital oficial que detalha as 135 vagas abertas para a categoria de Sargento, especificando especialidades, requisitos e áreas geográficas.",
         "category": [
-            "Recrutamento",
-            "Carreiras Militares",
-            "Avisos Oficiais"
+            "Recrutamento"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.292838",
@@ -130,9 +112,7 @@
         "title": "Regulamento do Concurso RCARCOS (Oficiais e Sargentos)",
         "description": "Normas e procedimentos para o concurso de admissão de voluntários em regime de contrato para as categorias de Oficial e Sargento.",
         "category": [
-            "Recrutamento",
-            "Regulamentação",
-            "Concursos"
+            "Recrutamento"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.294524",
@@ -144,9 +124,7 @@
         "title": "Código do Procedimento Administrativo (CPA)",
         "description": "Regras fundamentais sobre a atividade administrativa, garantias dos cidadãos e o funcionamento dos órgãos públicos.",
         "category": [
-            "Direito Administrativo",
-            "Legislação",
-            "Procedimentos"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.297344",
@@ -158,9 +136,7 @@
         "title": "Estatuto dos Militares das Forças Armadas (EMFAR)",
         "description": "Decreto-Lei n.º 90/2015 consolidado, que define o regime jurídico, deveres, direitos, carreiras e promoções dos militares em Portugal.",
         "category": [
-            "Legislação",
-            "Direito Militar",
-            "Estatuto Profissional"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.305637",
@@ -172,9 +148,7 @@
         "title": "Regulamento da Medalha Militar e Medalhas Comemorativas das Forças Armadas",
         "description": "Legislação consolidada que estabelece as normas e os graus das condecorações militares e medalhas comemorativas.",
         "category": [
-            "Legislação",
-            "Condecorações",
-            "Direito Militar"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.308781",
@@ -186,9 +160,7 @@
         "title": "Código do Trabalho (CT) - Legislação Consolidada",
         "description": "Versão consolidada da Lei n.º 7/2009, que regula as relações de trabalho no setor privado e serve como base subsidiária na função pública.",
         "category": [
-            "Legislação",
-            "Direito do Trabalho",
-            "Regulamentação"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.317636",
@@ -200,9 +172,7 @@
         "title": "Lei Geral do Trabalho em Funções Públicas (LTFP)",
         "description": "Lei n.º 35/2014 consolidada, regulando o vínculo, carreiras e remunerações dos trabalhadores da Administração Pública.",
         "category": [
-            "Legislação",
-            "Administração Pública",
-            "Direito do Trabalho"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.322200",
@@ -214,8 +184,6 @@
         "title": "Código de Justiça Militar (CJM)",
         "description": "Texto consolidado da Lei n.º 100/2003, que estabelece o regime substantivo e adjetivo dos crimes estritamente militares.",
         "category": [
-            "Justiça Militar",
-            "Direito Penal",
             "Legislação"
         ],
         "uploaded_by": "system",
@@ -228,9 +196,7 @@
         "title": "Regulamento da Avaliação do Mérito dos Militares das Forças Armadas (RAMMFA)",
         "description": "Legislação que define o sistema de avaliação individual, competências e potencial dos militares das Forças Armadas.",
         "category": [
-            "Legislação",
-            "Avaliação de Desempenho",
-            "Carreira Militar"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.327227",
@@ -242,9 +208,7 @@
         "title": "Decreto-Lei n.º 75/2023 - Aceleração de Carreiras na Função Pública",
         "description": "Estabelece um regime especial de aceleração do desenvolvimento das carreiras dos trabalhadores com vínculo de emprego público através da redução de pontos para progressão.",
         "category": [
-            "Legislação",
-            "Carreiras",
-            "Administração Pública"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.328001",
@@ -256,9 +220,7 @@
         "title": "Decreto-Lei n.º 88/2023 - Carreiras de Informática",
         "description": "Estabelece o regime das carreiras especiais de especialista e técnico de sistemas e tecnologias de informação na Administração Pública.",
         "category": [
-            "Legislação",
-            "Carreiras Especiais",
-            "Tecnologias de Informação"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.330916",
@@ -270,9 +232,7 @@
         "title": "Guião de Apoio - Classe de Comportamento (2023RH01)",
         "description": "Descreve os procedimentos técnicos no sistema SIG para o registo da classe de comportamento dos militares, com foco na aplicação à Marinha.",
         "category": [
-            "Justiça e Disciplina",
-            "Sistemas de Informação",
-            "Recursos Humanos"
+            "Guião"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.335128",
@@ -284,9 +244,7 @@
         "title": "Guião de Apoio - Concurrent Employment",
         "description": "Descreve os procedimentos técnicos no SIG para a gestão de múltiplas atribuições de números de pessoal (PERNR) associados a um único indivíduo na Defesa Nacional.",
         "category": [
-            "Sistemas de Informação",
-            "Gestão de Pessoal",
-            "Recursos Humanos"
+            "Guião"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.337759",
@@ -298,9 +256,7 @@
         "title": "Guião de Apoio para a Gestão de Qualificações no SIG",
         "description": "Instruções para a gestão do catálogo de qualificações, criação de grupos e associação de competências a cargos e pessoas no sistema.",
         "category": [
-            "Formação",
-            "Sistemas de Informação",
-            "Gestão de Pessoal"
+            "Guião"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.341038",
@@ -312,9 +268,7 @@
         "title": "Guião 2018RHV02 - Gestão do Horário por Turnos no SIG",
         "description": "Instruções específicas para o preenchimento de horários e gestão de folgas no sistema de informação de RH.",
         "category": [
-            "Gestão de Tempos",
-            "Sistemas de Informação",
-            "Recursos Humanos"
+            "Guião"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.344158",
@@ -326,9 +280,7 @@
         "title": "Guião 2019RH02 - Relatórios Ad Hoc Query",
         "description": "Instruções para a criação de relatórios personalizados no SIG através da ferramenta de cruzamento de dados Ad Hoc Query.",
         "category": [
-            "Sistemas de Informação",
-            "Análise de Dados",
-            "Recursos Humanos"
+            "Guião"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.345596",
@@ -340,9 +292,7 @@
         "title": "Informação sobre Concurso para Oficiais e Sargentos RC 2024",
         "description": "Documento de planeamento e proposta para a abertura de concursos de admissão para as categorias de Oficial e Sargento em Regime de Contrato.",
         "category": [
-            "Recrutamento",
-            "Planeamento",
-            "Concursos"
+            "Recrutamento"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.346593",
@@ -354,9 +304,7 @@
         "title": "Lei Orgânica n.º 2/2009 - Regulamento de Disciplina Militar (RDM)",
         "description": "Texto legal completo que aprova o regime disciplinar aplicável aos militares das Forças Armadas e da GNR.",
         "category": [
-            "Legislação",
-            "Direito Disciplinar",
-            "Justiça Militar"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.347258",
@@ -368,9 +316,7 @@
         "title": "Manual de Utilizador 2018RHV04 - Reclassificações e Transferências",
         "description": "Guia técnico sobre o processo de reclassificação e transferência de quadro especial de militares no sistema de gestão de recursos humanos.",
         "category": [
-            "Recursos Humanos",
-            "Administração Militar",
-            "Procedimentos"
+            "Manual de Utilizador"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.349602",
@@ -382,9 +328,7 @@
         "title": "Manual de Utilizador 2016RHV03 - Processo Individual (PIND)",
         "description": "Manual técnico sobre a criação, manutenção e consulta do Processo Individual digital no sistema SIG para a gestão de recursos humanos.",
         "category": [
-            "Sistemas de Informação",
-            "Gestão Documental",
-            "Recursos Humanos"
+            "Manual de Utilizador"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.353222",
@@ -396,9 +340,7 @@
         "title": "Manual de Utilizador 2016RHV04 - Mobilidades de Pessoal Civil",
         "description": "Manual de apoio à gestão de movimentos e mobilidade interna de funcionários civis da Defesa Nacional via SIG.",
         "category": [
-            "Pessoal Civil",
-            "Recursos Humanos",
-            "Gestão Administrativa"
+            "Manual de Utilizador"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.354414",
@@ -410,9 +352,7 @@
         "title": "Manual de Utilizador 2016RHV07 - Assiduidades",
         "description": "Manual técnico do sistema SIG que detalha o registo de horários, faltas, licenças e a gestão do mapa de assiduidade individual.",
         "category": [
-            "Sistemas de Informação",
-            "Gestão de Tempos",
-            "Recursos Humanos"
+            "Manual de Utilizador"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.357873",
@@ -424,9 +364,7 @@
         "title": "Manual de Utilizador 2018RHV02 - Saídas de Pessoal Militar",
         "description": "Manual técnico sobre os procedimentos no sistema SIG para o registo de passagens à reserva, reforma e abate de pessoal militar.",
         "category": [
-            "Recursos Humanos",
-            "Administração Militar",
-            "Sistemas de Informação"
+            "Manual de Utilizador"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.364211",
@@ -438,9 +376,7 @@
         "title": "Manual de Utilizador 2018RHV03 - Movimentos de Pessoal Militar",
         "description": "Guia de utilização do SIG para o registo de colocações, destacamentos e situações de inamovibilidade de militares.",
         "category": [
-            "Gestão de Pessoal",
-            "Sistemas de Informação",
-            "Procedimentos Militares"
+            "Manual de Utilizador"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.381960",
@@ -452,9 +388,7 @@
         "title": "Manual de Utilizador do SIAMMFA",
         "description": "Guia de utilização do Sistema de Informação de Avaliação do Mérito dos Militares das Forças Armadas, detalhando o workflow digital de avaliação.",
         "category": [
-            "Avaliação de Desempenho",
-            "Sistemas de Informação",
-            "Carreira Militar"
+            "Manual de Utilizador"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.385555",
@@ -466,9 +400,7 @@
         "title": "PAD 010-01 - Normas de Gestão do Processo Individual no Exército",
         "description": "Publicação administrativa que estabelece as normas para a organização, manutenção e consulta dos processos individuais dos militares.",
         "category": [
-            "Administração Militar",
-            "Documentação",
-            "Recursos Humanos"
+            "Documentação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.387563",
@@ -480,9 +412,7 @@
         "title": "Manual de Procedimentos do Regulamento de Disciplina Militar (PAD 250-01)",
         "description": "Guia de orientação para a aplicação do regime disciplinar e instrução de processos no âmbito do Exército.",
         "category": [
-            "Direito Disciplinar",
-            "Procedimentos",
-            "Justiça Militar"
+            "Documentação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.388042",
@@ -494,9 +424,7 @@
         "title": "Decreto-Lei n.º 12/2024 - Revisão do SIADAP",
         "description": "Diploma legal que procede à revisão do Sistema Integrado de Gestão e Avaliação do Desempenho na Administração Pública (SIADAP).",
         "category": [
-            "Legislação",
-            "Avaliação de Desempenho",
-            "Administração Pública"
+            "Legislação"
         ],
         "uploaded_by": "system",
         "uploaded_at": "2025-12-20T22:21:29.390162",

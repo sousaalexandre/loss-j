@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from src.logger import log
-from src.preprocessing.mineru import pdf_to_md, parse_single_pdf_default
+from src.preprocessing.mineru import parse_single_pdf_default
+from src.preprocessing.docling import parse_pdf_docling
 import tempfile
 import shutil
 
@@ -22,6 +23,40 @@ class PDFConverter(ABC):
             tuple: (markdown_content: str, output_directory: str, backend_used: str)
         """
         pass
+
+class DoclingConverter(PDFConverter):
+    """PDF to Markdown converter using Docling backend."""
+    
+    def __init__(self):
+        """Initialize the Docling converter."""
+        self.backend_used = "docling"
+        
+    def convert(self, pdf_path: str, output_dir: str = None) -> tuple:
+        """
+        Convert PDF using Docling.
+        Preserves all extracted files (images, metadata, etc.) in output directory.
+        
+        Args:
+            pdf_path (str): Path to the PDF file
+            output_dir (str): Directory to store all extracted files
+            
+        Returns:
+            tuple: (markdown_content: str, output_directory: str, backend_used: str)
+                   output_directory contains all extracted files
+        """
+        log(f"Converting PDF using Docling: {pdf_path}", level="info")
+        
+        if output_dir is None:
+            output_dir = tempfile.mkdtemp(prefix="docling_")
+        
+        docling_output = parse_pdf_docling(
+            pdf_path=pdf_path,
+            output_dir=output_dir,
+        )
+        
+        log(f"Successfully converted {pdf_path} with Docling", level="info")
+        
+        return None
 
 
 class MinerUHTTPConverter(PDFConverter):
@@ -165,11 +200,12 @@ class MinerUPipelineConverter(PDFConverter):
         return markdown_content, str(parent_output), self.backend_used
 
 
-def get_converter(backend: str, server_url: str = None) -> PDFConverter:
+def get_converter(loader: str, backend: str = None, server_url: str = None) -> PDFConverter:
     """
     Factory function to get the appropriate PDF converter.
     
     Args:
+        loader (str): The loader type to use ("mineru" or "docling)
         backend (str): The backend to use ("vlm-http-client" or "pipeline")
         server_url (str): Server URL for VLM HTTP backend (required if backend="vlm-http-client")
         
@@ -179,13 +215,17 @@ def get_converter(backend: str, server_url: str = None) -> PDFConverter:
     Raises:
         ValueError: If backend is invalid or required parameters are missing
     """
-    if backend == "vlm-http-client":
+    if loader == "docling":
+        log("Using Docling converter", level="info")
+        return DoclingConverter()
+    
+    elif loader == "mineru" and backend == "vlm-http-client":
         if not server_url:
             raise ValueError("server_url is required for vlm-http-client backend")
         log(f"Using MinerU HTTP Client converter (server: {server_url})", level="info")
         return MinerUHTTPConverter(server_url=server_url)
     
-    elif backend == "pipeline":
+    elif loader == "mineru" and backend == "pipeline":
         log("Using MinerU Pipeline converter", level="info")
         return MinerUPipelineConverter()
     

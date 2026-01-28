@@ -32,9 +32,13 @@ class ETLPipeline:
         self.force_clean = force_clean
         
         # Use provided config or create from settings
-        self.config = config or self._create_config_from_settings()
+        if settings.LOADER_TYPE == "mineru":
+            self.config = config or self._create_config_from_settings_mineru()
+        else:
+            self.config = config or self._create_config_from_settings()
+
         
-    def _create_config_from_settings(self) -> dict:
+    def _create_config_from_settings_mineru(self) -> dict:
         """Create config dict from current settings with last_etl_run timestamp.
         
         Reads configuration from settings module and initializes extraction metrics.
@@ -45,6 +49,7 @@ class ETLPipeline:
         return {
             "last_etl_run": None,
             "etl_settings": {
+                "loader_type": settings.LOADER_TYPE,
                 "mineru_backend": settings.MINERU_BACKEND,
                 "enable_html_cleaning": settings.ENABLE_HTML_CLEANING,
                 "enable_latex_cleaning": settings.ENABLE_LATEX_CLEANING,
@@ -58,6 +63,27 @@ class ETLPipeline:
                 "last_run": None
             }
         }
+    
+    def _create_config_from_settings(self) -> dict:
+        """Create config dict from current settings with last_etl_run timestamp.
+        
+        Reads configuration from settings module and initializes extraction metrics.
+        
+        Returns:
+            dict: Configuration dictionary with etl_settings and extraction_metrics
+        """
+        return {
+            "last_etl_run": None,
+            "etl_settings": {
+                "loader_type": settings.LOADER_TYPE,
+            },
+            "extraction_metrics": {
+                "total_documents": 0,
+                "successfully_extracted": 0,
+                "failed_extractions": 0,
+                "last_run": None
+        }
+    }
     
     def _load_gold_catalog(self) -> dict:
         """Load existing gold catalog if it exists.
@@ -224,14 +250,15 @@ class ETLPipeline:
         existing_config = self._load_existing_config()
         
         # Check what changed since last run
-        extraction_backend_same = self._extraction_backend_unchanged() if existing_config else False
-        cleaning_settings_same = self._cleaning_settings_unchanged() if existing_config else False
+        if settings.LOADER_TYPE == "mineru":
+            extraction_backend_same = self._extraction_backend_unchanged() if existing_config else False
+            cleaning_settings_same = self._cleaning_settings_unchanged() if existing_config else False
         
         log(f"Running ETL Pipeline", level="info")
         log(f"Landing zone: {self.landing_zone}", level="info")
         log(f"Bronze directory: {self.bronze_dir}", level="info")
         log(f"Gold directory: {self.gold_dir}", level="info")
-        if existing_config:
+        if existing_config and settings.LOADER_TYPE == "mineru":
             log(f"Extraction backend unchanged: {extraction_backend_same}, Cleaning settings unchanged: {cleaning_settings_same}", level="info")
         else:
             log(f"No previous config found (fresh start)", level="info")
@@ -270,22 +297,27 @@ class ETLPipeline:
                 # CACHE CHECK: Bronze (extraction)
                 # Reuse bronze if: directory exists AND extraction backend hasn't changed
                 bronze_exists = bronze_dir_hash.exists() and (bronze_md_file.exists() or (bronze_dir_hash).glob("*.md"))
-                can_use_bronze_cache = bronze_exists and extraction_backend_same
-                
+                if settings.LOADER_TYPE == "mineru":
+                    can_use_bronze_cache = bronze_exists and extraction_backend_same
+                else:
+                    can_use_bronze_cache = bronze_exists
+
                 if can_use_bronze_cache:
                     log(f"[{i}/{len(pdf_files)}] Using cached extraction from bronze: {file_hash}/", level="info")
                     # Find the markdown file in the bronze directory
                     md_files = list(bronze_dir_hash.glob("*.md"))
-                    if md_files:
-                        with open(md_files[0], 'r', encoding='utf-8') as f:
-                            cleaned_content = f.read()
-                    else:
-                        cleaned_content = ""
+                    if settings.LOADER_TYPE == "mineru":
+                        if md_files:
+                            with open(md_files[0], 'r', encoding='utf-8') as f:
+                                cleaned_content = f.read()
+                        else:
+                            cleaned_content = ""
                 else:
                     if not bronze_exists:
                         log(f"[{i}/{len(pdf_files)}] Bronze not found, extracting: {file_hash}/", level="info")
-                    elif not extraction_backend_same:
-                        log(f"[{i}/{len(pdf_files)}] Extraction backend changed, re-extracting: {file_hash}/", level="info")
+                    elif settings.LOADER_TYPE == "mineru":
+                        if not extraction_backend_same:
+                            log(f"[{i}/{len(pdf_files)}] Extraction backend changed, re-extracting: {file_hash}/", level="info")
                     
                     # EXTRACT: Need to extract (either bronze missing or backend changed)
                     log(f"[{i}/{len(pdf_files)}] Converting {pdf_path.name} (hash: {file_hash})...", level="info")
@@ -295,47 +327,55 @@ class ETLPipeline:
                     temp_output = tempfile.mkdtemp(prefix=f"mineru_{file_hash}_")
                     
                     try:
-                        # Get converter (always from settings, not config)
-                        converter = get_converter(
-                            backend=settings.MINERU_BACKEND,
-                            server_url=settings.MINERU_VLM_HTTP_URL
-                        )
-                        
-                        # Convert PDF to Markdown + all assets (images, metadata, etc.)
-                        markdown_content, mineru_output_dir, backend_used = converter.convert(str(pdf_path), output_dir=temp_output)
-                        
-                        # Create bronze hash directory
-                        bronze_dir_hash.mkdir(parents=True, exist_ok=True)
-                        
-                        # Flatten mineru output: copy from auto/ or vlm/ subdirectories to bronze root
-                        mineru_path = Path(mineru_output_dir)
-                        for item in mineru_path.iterdir():
-                            if item.is_dir() and item.name in ["auto", "vlm"]:
-                                # Found method subdirectory, flatten its contents
-                                for sub_item in item.iterdir():
-                                    if sub_item.is_file():
-                                        dest = bronze_dir_hash / sub_item.name
-                                        shutil.copy2(str(sub_item), str(dest))
-                                    elif sub_item.is_dir():
-                                        dest = bronze_dir_hash / sub_item.name
-                                        if dest.exists():
-                                            shutil.rmtree(dest)
-                                        shutil.copytree(str(sub_item), str(dest))
-                            elif item.is_file():
-                                # Copy loose files directly
-                                dest = bronze_dir_hash / item.name
-                                shutil.copy2(str(item), str(dest))
-                        
-                        # Apply cleaning to markdown content
-                        cleaned_content = self._get_cleaned_markdown(markdown_content, str(pdf_path))
-                        
-                        # Save cleaned markdown to bronze
-                        pdf_name = Path(pdf_path).stem
-                        bronze_md_file = bronze_dir_hash / f"{pdf_name}.md"
-                        with open(bronze_md_file, 'w', encoding='utf-8') as f:
-                            f.write(cleaned_content)
-                        
-                        log(f"     ✓ Extracted to bronze: {file_hash}/", level="info")
+                        if settings.LOADER_TYPE == "mineru":
+                            # Get converter (always from settings, not config)
+                            converter = get_converter(
+                                loader = settings.LOADER_TYPE,
+                                backend=settings.MINERU_BACKEND,
+                                server_url=settings.MINERU_VLM_HTTP_URL
+                            )
+                            
+                            # Convert PDF to Markdown + all assets (images, metadata, etc.)
+                            markdown_content, mineru_output_dir, backend_used = converter.convert(str(pdf_path), output_dir=temp_output)
+                            
+                            # Create bronze hash directory
+                            bronze_dir_hash.mkdir(parents=True, exist_ok=True)
+                            
+                            # Flatten mineru output: copy from auto/ or vlm/ subdirectories to bronze root
+                            mineru_path = Path(mineru_output_dir)
+                            for item in mineru_path.iterdir():
+                                if item.is_dir() and item.name in ["auto", "vlm"]:
+                                    # Found method subdirectory, flatten its contents
+                                    for sub_item in item.iterdir():
+                                        if sub_item.is_file():
+                                            dest = bronze_dir_hash / sub_item.name
+                                            shutil.copy2(str(sub_item), str(dest))
+                                        elif sub_item.is_dir():
+                                            dest = bronze_dir_hash / sub_item.name
+                                            if dest.exists():
+                                                shutil.rmtree(dest)
+                                            shutil.copytree(str(sub_item), str(dest))
+                                elif item.is_file():
+                                    # Copy loose files directly
+                                    dest = bronze_dir_hash / item.name
+                                    shutil.copy2(str(item), str(dest))
+                            
+                            # Apply cleaning to markdown content
+                            cleaned_content = self._get_cleaned_markdown(markdown_content, str(pdf_path))
+                            
+                            # Save cleaned markdown to bronze
+                            pdf_name = Path(pdf_path).stem
+                            bronze_md_file = bronze_dir_hash / f"{pdf_name}.md"
+                            with open(bronze_md_file, 'w', encoding='utf-8') as f:
+                                f.write(cleaned_content)
+                            
+                            log(f"     ✓ Extracted to bronze: {file_hash}/", level="info")
+                        elif settings.LOADER_TYPE == "docling":
+                            bronze_dir_hash.mkdir(parents=True, exist_ok=True)
+                            pdf_name = Path(pdf_path).stem
+                            converter = get_converter(loader=settings.LOADER_TYPE)
+                            converter.convert(str(pdf_path), output_dir=str(bronze_dir_hash))
+                            log(f"     ✓ Extracted to bronze: {file_hash}/", level="info")
                         
                     finally:
                         # Clean up temp directory
@@ -347,31 +387,39 @@ class ETLPipeline:
                 gold_doc_dir = self.gold_dir / file_hash
                 gold_md_file = gold_doc_dir / f"{file_hash}.md"
                 
-                if not gold_doc_dir.exists() or not cleaning_settings_same or self.force_clean:
+                if not gold_doc_dir.exists():
                     if not gold_doc_dir.exists():
                         log(f"     → Finalizing to gold: {file_hash}/", level="info")
-                    elif self.force_clean:
-                        log(f"     → Force re-cleaning enabled, re-finalizing to gold: {file_hash}/", level="info")
-                    else:
-                        log(f"     → Cleaning settings changed, re-finalizing to gold: {file_hash}/", level="info")
+                    if settings.LOADER_TYPE == "mineru" and (not cleaning_settings_same or self.force_clean):
+                        if self.force_clean:
+                            log(f"     → Force re-cleaning enabled, re-finalizing to gold: {file_hash}/", level="info")
+                        else:
+                            log(f"     → Cleaning settings changed, re-finalizing to gold: {file_hash}/", level="info")
                     
                     # Re-apply cleaning if settings changed or force_clean
-                    if not cleaning_settings_same or self.force_clean:
-                        # Get raw markdown from bronze
-                        md_files = list(bronze_dir_hash.glob("*.md"))
-                        if md_files:
-                            with open(md_files[0], 'r', encoding='utf-8') as f:
-                                raw_markdown = f.read()
-                            cleaned_content = self._get_cleaned_markdown(raw_markdown, str(pdf_path))
-                        else:
-                            cleaned_content = ""
+                    if settings.LOADER_TYPE == "mineru":
+                        if (not cleaning_settings_same or self.force_clean):
+                            # Get raw markdown from bronze
+                            md_files = list(bronze_dir_hash.glob("*.md"))
+                            if md_files:
+                                with open(md_files[0], 'r', encoding='utf-8') as f:
+                                    raw_markdown = f.read()
+                                cleaned_content = self._get_cleaned_markdown(raw_markdown, str(pdf_path))
+                            else:
+                                cleaned_content = ""
                     
                     # Create gold document directory structure
                     gold_doc_dir.mkdir(parents=True, exist_ok=True)
                     
-                    # 1. Save cleaned markdown to gold
-                    with open(gold_md_file, 'w', encoding='utf-8') as f:
-                        f.write(cleaned_content)
+                    # 1. Save markdown to gold
+                    if settings.LOADER_TYPE == "mineru":
+                        with open(gold_md_file, 'w', encoding='utf-8') as f:
+                            f.write(cleaned_content)
+                    elif settings.LOADER_TYPE == "docling":
+                        # Find the markdown file in the bronze directory
+                        md_files = list(bronze_dir_hash.glob("*.md"))
+                        if md_files:
+                            shutil.copy2(str(md_files[0]), str(gold_md_file))
                     
                     # 2. Copy PDF from landing zone to gold
                     landing_pdf = self.landing_zone / f"{file_hash}.pdf"
@@ -433,6 +481,7 @@ class ETLPipeline:
                 gold_catalog[file_hash] = gold_entry
                 
                 self.config["extraction_metrics"]["successfully_extracted"] += 1
+                log(f"     ✓ Processed {pdf_path.name} successfully", level="info")
                 
             except Exception as e:
                 log(f"     ✗ Error processing {pdf_path.name}: {e}", level="error")

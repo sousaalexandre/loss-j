@@ -21,7 +21,10 @@ def split_documents(documents: List[Document]) -> List[Document]:
     - "recursive": Basic recursive character splitting
     - "markdown_recursive": Markdown-aware recursive splitting
     """
-    if settings.SPLITTING_TYPE == "markdown_recursive":
+    if settings.SPLITTING_TYPE == "hierarchical":
+        log("Using hierarchical splitter", level="info")
+        return _split_hierarchichal(documents)
+    elif settings.SPLITTING_TYPE == "markdown_recursive":
         log("Using markdown-aware splitter", level="info")
         return _split_markdown(documents)
     else:
@@ -392,4 +395,6 @@ def _split_markdown(documents: List[Document]) -> List[Document]:
 
     log(f"Successfully split documents into {len(all_chunks)} chunks (markdown-optimized + metadata).", level="info")
     return all_chunks
+
+def _split_hierarchichal(documents: List[Document]) -> List[Document]:
 
