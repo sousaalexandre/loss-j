@@ -29,7 +29,7 @@ The system supports two distinct document loading strategies:
 | `pdfloader` | PDF | Direct text extraction → Indexing | Simple PDFs, faster processing |
 | `mineru` / `docling` | PDF | PDF → Markdown → Cleaning → Indexing | Complex PDFs with tables, images, formulas |
 
-**Why PDF-to-Markdown?** Converters like MinerU or Docling extract structured information from PDFs—tables, headers, images, formulas—preserving document structure. The pdfloader approach extracts plain text only, losing all formatting and hierarchy.
+**Why PDF-to-Markdown?** Converters like MinerU or Docling can extract structured information from PDFs—tables, headers, images, formulas—preserving document structure. The pdfloader approach extracts plain text only, losing all formatting and hierarchy.
 
 This is why the **Data Lakehouse architecture** is essential—it manages the intermediate artifacts (Bronze: raw extraction, Gold: cleaned output) separately from the raw input (Landing Zone).
 
