@@ -55,12 +55,13 @@ The ETL pipeline implements intelligent caching, with the goal of optimizing dev
 
 ### 1. ETL Pipeline
 
+
+[`pipeline_etl.py`](src/pipelines/pipeline_etl.py)
+
 ```
 1. Prepare Landing Zone    →    2. Bronze Layer          →    3. Gold Layer
    (hash PDFs)                     (Bronze MD)                  (Gold MD)
 ```
-
-[`pipeline_etl.py`](src/pipelines/pipeline_etl.py)
 
 Transforms PDFs in the landing zone into RAG-ready markdown in the gold layer:
 
