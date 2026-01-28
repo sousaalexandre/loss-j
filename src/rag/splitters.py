@@ -397,4 +397,4 @@ def _split_markdown(documents: List[Document]) -> List[Document]:
     return all_chunks
 
 def _split_hierarchichal(documents: List[Document]) -> List[Document]:
-
+    return None
