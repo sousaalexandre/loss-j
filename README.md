@@ -43,9 +43,9 @@ See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for complete sp
 
 The ETL pipeline implements intelligent caching, with the goal of optimizing development:
 
-1. **Bronze Cache**: Reused if extraction backend (`pipeline` vs `vlm-http-client`) unchanged
-2. **Gold Cache**: Reused if cleaning settings (`enable_html_cleaning`, `enable_hierarchy_rebuilding`, etc.) unchanged
-3. **Force Clean**: Option to rebuild gold even if settings unchanged
+1. **Bronze Cache**: In the bronze layer, some data is used as a cache, enabling the reuse of previously processed contents if the extraction mechanism (`docling` vs `mineru pipeline/vlm`) is unchanged when this layer must be rebuilt.
+2. **Gold Cache**: In the same way, in the gold layer, some data is reused if cleaning settings (`enable_html_cleaning`, `enable_hierarchy_rebuilding`, etc.) are unchanged when this layer must be rebuilt.
+3. **Force Clean**: Option to rebuild gold even if settings are unchanged.
 
 ---
 
