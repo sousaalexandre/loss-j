@@ -2,7 +2,7 @@
 
 **Locate, Organize, Summarize, Suggest, and Justify**
 
-A Retrieval-Augmented Generation (RAG) system for document processing and intelligent querying, designed for Portuguese military and administrative documentation.
+A Retrieval-Augmented-Generation-based system for document processing and intelligent querying, designed for Portuguese military and administrative documentation.
 
 ---
 
