@@ -37,7 +37,9 @@ In order to address these challenges, we implemented a **Data Lakehouse architec
 
 ## Data Lakehouse
 
-The preprocessing stage implements a [**Medallion Architecture**](https://www.databricks.com/glossary/medallion-architecture) for managing document transformation before being loaded into the final layer(Gold).
+The preprocessing stage is inspired by the [**Medallion Architecture**](https://www.databricks.com/glossary/medallion-architecture) for managing document transformation before being loaded into the final layer(Gold).
+
+We noticed that our architecture doesn't take advantage of a silver layer.
 
 See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for complete specification.
 
@@ -52,9 +54,15 @@ The ETL pipeline implements intelligent caching, with the goal of optimizing dev
 ## Pipeline Components
 
 ### 1. ETL Pipeline
+
+```
+1. Prepare Landing Zone    →    2. Bronze Layer          →    3. Gold Layer
+   (hash PDFs)                     (Bronze MD)                  (Gold MD)
+```
+
 [`pipeline_etl.py`](src/pipelines/pipeline_etl.py)
 
-Transforms PDFs into RAG-ready markdown:
+Transforms PDFs in the landing zone into RAG-ready markdown in the gold layer:
 
 ```python
 ETLPipeline(force_clean=False).run(pdf_files)
