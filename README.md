@@ -31,21 +31,21 @@ The system supports two distinct document loading strategies:
 
 **Why PDF-to-Markdown?** Converters like MinerU or Docling can extract structured information from PDFs, such as tables, headers, images, and formulas, while preserving the document structure. The PDFLoader approach extracts plain text only, losing all formatting and hierarchy.
 
-In order to address these challenges, we implemented a **Data Lakehouse architecture** based on three stages to support the intermediate artifacts separately from the raw input through the final stage.
+In order to address these challenges, we implemented a **Data Lakehouse architecture** based on three layers to support the intermediate artifacts separately from the raw input through the final stage.
 
 ---
 
 ## Data Lakehouse
 
-The preprocessing stage implements a [**Medallion Architecture**](https://www.databricks.com/glossary/medallion-architecture) for managing document transformation.
+The preprocessing stage implements a [**Medallion Architecture**](https://www.databricks.com/glossary/medallion-architecture) for managing document transformation before being loaded into the final layer(Gold).
+
+See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for complete specification.
 
 The ETL pipeline implements intelligent caching, with the goal of optimizing development:
 
 1. **Bronze Cache**: Reused if extraction backend (`pipeline` vs `vlm-http-client`) unchanged
 2. **Gold Cache**: Reused if cleaning settings (`enable_html_cleaning`, `enable_hierarchy_rebuilding`, etc.) unchanged
 3. **Force Clean**: Option to rebuild gold even if settings unchanged
-
-See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for complete specification.
 
 ---
 
