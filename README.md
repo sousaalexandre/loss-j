@@ -2,7 +2,7 @@
 
 **Locate, Organize, Summarize, Suggest, and Justify**
 
-A Retrieval-Augmented Generation (RAG) system for document processing and intelligent querying, designed for Portuguese military and administrative documentation.
+A Retrieval-Augmented-Generation-based system for document processing and intelligent querying, designed for Portuguese military and administrative documentation.
 
 ---
 
@@ -29,32 +29,41 @@ The system supports two distinct document loading strategies:
 | `pdfloader` | PDF | Direct text extraction → Indexing | Simple PDFs, faster processing |
 | `mineru` / `docling` | PDF | PDF → Markdown → Cleaning → Indexing | Complex PDFs with tables, images, formulas |
 
-**Why PDF-to-Markdown?** Converters like MinerU or Docling extract structured information from PDFs—tables, headers, images, formulas—preserving document structure. The pdfloader approach extracts plain text only, losing all formatting and hierarchy.
+**Why PDF-to-Markdown?** Converters like MinerU or Docling can extract structured information from PDFs, such as tables, headers, images, and formulas, while preserving the document structure. The PDFLoader approach extracts plain text only, losing all formatting and hierarchy.
 
-This is why the **Data Lakehouse architecture** is essential—it manages the intermediate artifacts (Bronze: raw extraction, Gold: cleaned output) separately from the raw input (Landing Zone).
+In order to address these challenges, we implemented a **Data Lakehouse architecture** based on three layers to support the intermediate artifacts separately from the raw input through the final stage.
 
 ---
 
 ## Data Lakehouse
 
-The preprocessing stage implements a **Medallion Architecture** for managing document transformation.
+The preprocessing stage is inspired by the [**Medallion Architecture**](https://www.databricks.com/glossary/medallion-architecture) for managing document transformation before being loaded into the final layer(Gold).
+
+We noticed that our architecture doesn't take advantage of a silver layer.
+
+See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for complete specification.
 
 The ETL pipeline implements intelligent caching, with the goal of optimizing development:
 
-1. **Bronze Cache**: Reused if extraction backend (`pipeline` vs `vlm-http-client`) unchanged
-2. **Gold Cache**: Reused if cleaning settings (`enable_html_cleaning`, `enable_hierarchy_rebuilding`, etc.) unchanged
-3. **Force Clean**: Option to rebuild gold even if settings unchanged
-
-See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for complete specification.
+1. **Bronze Cache**: In the bronze layer, some data is used as a cache, enabling the reuse of previously processed contents if the extraction mechanism (`docling` vs `mineru pipeline/vlm`) is unchanged when this layer must be rebuilt.
+2. **Gold Cache**: In the same way, in the gold layer, some data is reused if cleaning settings (`enable_html_cleaning`, `enable_hierarchy_rebuilding`, etc.) are unchanged when this layer must be rebuilt.
+3. **Force Clean**: Option to rebuild gold even if settings are unchanged.
 
 ---
 
 ## Pipeline Components
 
 ### 1. ETL Pipeline
+
+
 [`pipeline_etl.py`](src/pipelines/pipeline_etl.py)
 
-Transforms PDFs into RAG-ready markdown:
+```
+1. Prepare Landing Zone    →    2. Bronze Layer          →    3. Gold Layer
+   (hash PDFs)                     (Bronze MD)                  (Gold MD)
+```
+
+Transforms PDFs in the landing zone into RAG-ready markdown in the gold layer:
 
 ```python
 ETLPipeline(force_clean=False).run(pdf_files)
@@ -84,7 +93,7 @@ RAGIndexingPipeline(use_etl=True).run()
 ```
 
 **Stages:**
-1. **Load**: Read markdown from Gold layer (or PDFs if `use_etl=False`)
+1. **Load**: Read markdown from Gold layer or PDFs from Landing Zone if `use_etl=False`
 2. **Split**: Chunk documents using markdown-aware splitter
 3. **Embed**: Generate embeddings via OpenAI
 4. **Store**: Upsert into ChromaDB vector store
