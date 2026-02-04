@@ -1,6 +1,6 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
 from langchain_core.documents import Document
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 import re
 import html2text
 from pylatexenc.latex2text import LatexNodes2Text
@@ -396,5 +396,383 @@ def _split_markdown(documents: List[Document]) -> List[Document]:
     log(f"Successfully split documents into {len(all_chunks)} chunks (markdown-optimized + metadata).", level="info")
     return all_chunks
 
-def _split_hierarchichal(documents: List[Document]) -> List[Document]:
-    return None
+def _split_hierarchichal(documents: List[Document], chunk_size: Optional[int] = None, chunk_overlap: Optional[int] = None, include_header_prefix: bool = True, min_chunk_size: int = 50, ) -> List[Document]:
+    """
+    Hierarchical markdown splitting (headers -> subchunks) + metadata enrichment via indexed _catalog.json.
+
+    - Loads/merges _catalog.json automatically (00_landing_zone base + 03_gold override) based on doc.metadata["source"]
+      and caches it across calls in the same process.
+    - Infers doc_id from metadata (doc_id/id/hash/sha...) or from filename stem of source.
+    - Merges catalog entry into metadata without overwriting existing non-empty values.
+    - Adds header breadcrumb context prefix (your "[Contexto: ...]") to each chunk.
+    - Sanitizes metadata for vector stores (no lists/dicts; only str/int/float/bool).
+    """
+
+    chunk_size = chunk_size or CHUNK_SIZE
+    chunk_overlap = chunk_overlap or CHUNK_OVERLAP
+
+    # -----------------------------
+    # Helpers: small utilities
+    # -----------------------------
+    def _normalize_source(meta: Dict) -> None:
+        src = meta.get("source")
+        if isinstance(src, str) and "\\" in src:
+            meta["source"] = src.replace("\\", "/")
+
+    def _is_empty(v) -> bool:
+        return v is None or v == "" or v == [] or v == {}  # noqa: E711
+
+    def _sanitize_value(value):
+        if value is None:
+            return None
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, (list, tuple, set)):
+            # list of strings -> join; else json
+            if all(isinstance(x, str) for x in value):
+                return " | ".join(x.strip() for x in value if x and x.strip())
+            return json.dumps(list(value), ensure_ascii=False, default=str)
+        if isinstance(value, dict):
+            return json.dumps(value, ensure_ascii=False, default=str)
+        return str(value)
+
+    def _sanitize_metadata(meta: Dict) -> Dict:
+        """
+        Vector store compatible: only str/int/float/bool; removes None.
+        Preserves a consistent key order first, then appends remaining keys.
+        """
+        key_order = [
+            # identity / provenance
+            "source", "filename", "doc_id",
+            # titles
+            "document_title", "title", "original_filename",
+            # catalog-ish common fields
+            "category", "category_str",
+            # hierarchy
+            "h1", "h2", "h3", "header_hierarchy",
+            # chunk bookkeeping
+            "is_sub_chunk", "chunk_index", "total_sub_chunks", "chunk_id",
+            # page (if coming from PDF loader)
+            "page",
+        ]
+
+        clean = {}
+        meta = meta or {}
+
+        # first: ordered keys
+        for k in key_order:
+            if k in meta:
+                v = _sanitize_value(meta.get(k))
+                if v is not None:
+                    clean[k] = v
+
+        # then: any other keys not already present
+        for k, v in meta.items():
+            if k in clean:
+                continue
+            sv = _sanitize_value(v)
+            if sv is not None:
+                clean[k] = sv
+
+        return clean
+
+    def _infer_doc_id(doc: Document) -> str:
+        md = doc.metadata or {}
+        for k in ("doc_id", "id", "file_id", "sha", "sha256", "hash"):
+            v = md.get(k)
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+
+        src = md.get("source")
+        if isinstance(src, str) and src.strip():
+            p = Path(src)
+            if not p.is_absolute():
+                p = (Path.cwd() / p).resolve()
+            return p.stem or ""
+        return ""
+
+    def _extract_base_metadata(doc: Document) -> Dict:
+        """
+        Your original base metadata + keeps whatever loader had.
+        """
+        original_metadata = dict(doc.metadata) if doc.metadata else {}
+        _normalize_source(original_metadata)
+
+        source = original_metadata.get("source", "")
+        filename = source.replace("\\", "/").split("/")[-1] if source else ""
+
+        title_match = re.search(r"^#\s+(.+?)$", doc.page_content or "", re.MULTILINE)
+        document_title = title_match.group(1).strip() if title_match else ""
+
+        base = dict(original_metadata)
+        base.setdefault("source", source)
+        base.setdefault("filename", filename)
+        base.setdefault("document_title", document_title)
+
+        # keep page if provided
+        if "page" in original_metadata:
+            base["page"] = original_metadata.get("page")
+
+        return base
+
+    def _build_header_hierarchy(md: Dict) -> List[Tuple[str, str]]:
+        hierarchy = []
+        for level in ("h1", "h2", "h3"):
+            v = md.get(level)
+            if isinstance(v, str) and v.strip():
+                hierarchy.append((level, v))
+        return hierarchy
+
+    def _hierarchy_to_string(hierarchy: List[Tuple[str, str]]) -> str:
+        if not hierarchy:
+            return ""
+        return " > ".join([h[1] for h in hierarchy])
+
+    def _format_header_prefix(hierarchy: List[Tuple[str, str]]) -> str:
+        if not hierarchy:
+            return ""
+        breadcrumb = " > ".join([h[1] for h in hierarchy])
+        return f"[Contexto: {breadcrumb}]\n\n"
+
+    # -----------------------------
+    # Helpers: content cleaning (your original)
+    # -----------------------------
+    def _clean_content(content: str) -> str:
+        try:
+            l2t = LatexNodes2Text()
+        except Exception:
+            l2t = None
+
+        h = html2text.HTML2Text()
+        h.body_width = 0
+        h.single_line_break = True
+
+        cleaned = content or ""
+
+        # HTML tables -> markdown-ish text
+        cleaned = re.sub(
+            r"<table.*?</table>",
+            lambda m: f"\n{h.handle(m.group(0))}\n",
+            cleaned,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
+
+        # inline latex $...$ -> plain text
+        if l2t:
+            def clean_latex(match):
+                try:
+                    plain = l2t.latex_to_text(match.group(1))
+                    return re.sub(r"\s+", " ", plain).strip()
+                except Exception:
+                    return match.group(0)
+
+            cleaned = re.sub(r"\$(.*?)\$", clean_latex, cleaned)
+
+        return cleaned
+
+    # -----------------------------
+    # Helpers: load/merge _catalog.json (indexed)
+    # -----------------------------
+    cwd = Path.cwd()
+    module_root = Path(__file__).resolve().parents[2]  # .../src/... -> project root
+
+    def _find_lakehouse_dirs(docs: List[Document]) -> List[Path]:
+        found, seen = [], set()
+
+        for d in docs:
+            src = (d.metadata or {}).get("source")
+            if not isinstance(src, str) or not src.strip():
+                continue
+
+            p = Path(src)
+            if not p.is_absolute():
+                p = (cwd / p)
+
+            for parent in [p] + list(p.parents):
+                if parent.name == "data_lakehouse":
+                    rp = parent.resolve()
+                    if str(rp) not in seen:
+                        seen.add(str(rp))
+                        found.append(rp)
+                    break
+
+        return found
+
+    def _load_catalog_file(path: Path) -> Dict:
+        try:
+            if path.exists() and path.is_file():
+                return json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            log(f"Failed to load catalog at {path}: {e}", level="warning")
+        return {}
+
+    def _load_catalog(docs: List[Document]) -> Dict[str, Dict]:
+        # simple cache on function object
+        cache_key = getattr(_split_hierarchichal, "_catalog_cache_key", None)
+        cache_val = getattr(_split_hierarchichal, "_catalog_cache", None)
+
+        lakehouse_dirs = _find_lakehouse_dirs(docs)
+
+        # fallbacks if source paths don't reveal lakehouse
+        for candidate in (cwd / "data_lakehouse", module_root / "data_lakehouse"):
+            try:
+                if candidate.exists() and candidate.is_dir():
+                    rp = candidate.resolve()
+                    if rp not in lakehouse_dirs:
+                        lakehouse_dirs.append(rp)
+            except Exception:
+                pass
+
+        candidates = []
+        for lh in lakehouse_dirs:
+            candidates.append(lh / "03_gold" / "_catalog.json")
+            candidates.append(lh / "00_landing_zone" / "_catalog.json")
+
+        key = tuple(sorted([str(p) for p in candidates]))
+        if cache_key == key and isinstance(cache_val, dict):
+            return cache_val
+
+        merged: Dict[str, Dict] = {}
+
+        # landing_zone first
+        for p in candidates:
+            if p.as_posix().endswith("00_landing_zone/_catalog.json"):
+                merged.update(_load_catalog_file(p))
+
+        # gold overrides
+        for p in candidates:
+            if p.as_posix().endswith("03_gold/_catalog.json"):
+                merged.update(_load_catalog_file(p))
+
+        _split_hierarchichal._catalog_cache_key = key
+        _split_hierarchichal._catalog_cache = merged
+
+        if merged:
+            log("Catalog metadata loaded/merged successfully.", level="info")
+        else:
+            log("No _catalog.json found; proceeding without external metadata enrichment.", level="warning")
+
+        return merged
+
+    catalog = _load_catalog(documents)
+
+    # -----------------------------
+    # Splitters (headers + recursive)
+    # -----------------------------
+    headers_to_split_on = [
+        ("##", "h1"),
+        ("###", "h2"),
+        ("####", "h3"),
+    ]
+
+    md_header_splitter = MarkdownHeaderTextSplitter(
+        headers_to_split_on=headers_to_split_on,
+        strip_headers=False,
+    )
+
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        length_function=len,
+        separators=["\n\n", "\n", ". ", " ", ""],
+    )
+
+    # -----------------------------
+    # Main loop
+    # -----------------------------
+    log("Splitting documents hierarchically + enriching with catalog metadata...", level="info")
+    all_chunks: List[Document] = []
+
+    for doc in documents:
+        base_meta = _extract_base_metadata(doc)
+
+        # doc_id
+        doc_id = _infer_doc_id(doc)
+        if doc_id:
+            base_meta.setdefault("doc_id", doc_id)
+
+        # enrich from catalog (without overwriting meaningful existing values)
+        if doc_id and doc_id in catalog:
+            entry = catalog.get(doc_id, {}) or {}
+            for k, v in entry.items():
+                if k not in base_meta or _is_empty(base_meta.get(k)):
+                    base_meta[k] = v
+
+            # category list -> string + category_str
+            if isinstance(base_meta.get("category"), list):
+                joined = " | ".join(
+                    x.strip() for x in base_meta["category"]
+                    if isinstance(x, str) and x.strip()
+                )
+                base_meta["category"] = joined
+                base_meta.setdefault("category_str", joined)
+
+        # sanitize once after merge
+        base_meta = _sanitize_metadata(base_meta)
+
+        cleaned_content = _clean_content(doc.page_content or "")
+        header_splits = md_header_splitter.split_text(cleaned_content)
+
+        for split in header_splits:
+            header_hierarchy = _build_header_hierarchy(split.metadata or {})
+            header_prefix = _format_header_prefix(header_hierarchy) if include_header_prefix else ""
+
+            content = (split.page_content or "").strip()
+            if not content or len(content) < 10:
+                continue
+
+            full_content = (header_prefix + content) if header_prefix else content
+
+            def _make_chunk_doc(
+                chunk_text: str,
+                is_sub: bool,
+                sub_index: Optional[int] = None,
+                sub_total: Optional[int] = None,
+            ) -> Document:
+                meta = dict(base_meta)
+
+                # include header fields
+                sm = split.metadata or {}
+                meta["h1"] = sm.get("h1", "") or ""
+                meta["h2"] = sm.get("h2", "") or ""
+                meta["h3"] = sm.get("h3", "") or ""
+                meta["header_hierarchy"] = _hierarchy_to_string(header_hierarchy)
+
+                meta["is_sub_chunk"] = bool(is_sub)
+                if is_sub and sub_index is not None:
+                    meta["chunk_index"] = int(sub_index)
+                    meta["total_sub_chunks"] = int(sub_total or 0)
+
+                # stable chunk_id
+                did = meta.get("doc_id") or ""
+                hh = meta.get("header_hierarchy") or ""
+                if did:
+                    # keep it compact-ish
+                    meta["chunk_id"] = f"{did}:{hash(hh) & 0xffff}:{meta.get('chunk_index', 0)}"
+                else:
+                    meta["chunk_id"] = f"{hash(meta.get('source','')) & 0xffff}:{hash(hh) & 0xffff}:{meta.get('chunk_index', 0)}"
+
+                meta = _sanitize_metadata(meta)
+                return Document(page_content=chunk_text, metadata=meta)
+
+            if len(full_content) > chunk_size:
+                sub_chunks = text_splitter.split_text(content)
+                for i, sub_chunk in enumerate(sub_chunks):
+                    sub_text = (header_prefix + sub_chunk) if header_prefix else sub_chunk
+                    all_chunks.append(_make_chunk_doc(sub_text, is_sub=True, sub_index=i, sub_total=len(sub_chunks)))
+            else:
+                all_chunks.append(_make_chunk_doc(full_content, is_sub=False))
+
+    # final safety sanitize + filter tiny chunks
+    final_chunks: List[Document] = []
+    for ch in all_chunks:
+        ch.metadata = _sanitize_metadata(dict(ch.metadata or {}))
+        if len((ch.page_content or "")) >= min_chunk_size:
+            final_chunks.append(ch)
+
+    log(
+        f"Successfully split into {len(final_chunks)} chunks from {len(documents)} documents "
+        f"(hierarchical + catalog metadata).",
+        level="info",
+    )
+    return final_chunks
