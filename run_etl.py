@@ -19,7 +19,7 @@ def main():
         SystemExit: If the landing zone directory does not exist, no PDFs are found,
                     or the ETL pipeline encounters an error.
     """
-    landing_zone = Path("data_lakehouse/00_landing_zone")
+    landing_zone = Path("data_lakehouse/01_bronze")
     
     if not landing_zone.exists():
         log(f"ERROR: Landing zone not found at {landing_zone}", level="error")

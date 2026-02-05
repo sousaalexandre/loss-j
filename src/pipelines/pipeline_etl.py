@@ -16,8 +16,8 @@ class ETLPipeline:
         Initialize ETL pipeline with simplified structure.
         
         Single data warehouse structure:
-        - 00_landing_zone/ - Original PDFs + metadata JSON
-        - 01_bronze/ - Extracted markdown (cache)
+        - 01_bronze/ - Original PDFs + metadata JSON
+        - 02_silver/ - Extracted markdown (cache)
         - 03_gold/ - Finalized markdown for RAG
         
         Args:
@@ -25,8 +25,8 @@ class ETLPipeline:
             force_clean: If True, re-apply cleaning even if settings unchanged
         """
         # Setup simple directory structure (no versioning)
-        self.landing_zone = Path("data_lakehouse/00_landing_zone")
-        self.bronze_dir = Path("data_lakehouse/01_bronze")
+        self.landing_zone = Path("data_lakehouse/01_bronze")
+        self.silver_dir = Path("data_lakehouse/02_silver")
         self.gold_dir = Path("data_lakehouse/03_gold")
         self.config_path = Path("data_lakehouse/config.json")
         self.force_clean = force_clean
@@ -144,7 +144,7 @@ class ETLPipeline:
     def _extraction_backend_unchanged(self) -> bool:
         """Check if extraction backend (mineru_backend) hasn't changed.
         
-        Used to determine if bronze cache can be reused without re-extraction.
+        Used to determine if silver cache can be reused without re-extraction.
         
         Returns:
             bool: True if backend matches previous config, False otherwise
@@ -235,14 +235,14 @@ class ETLPipeline:
         """
         Run ETL pipeline with caching logic:
         
-        1. If bronze files exist AND settings match config.json -> use cache, finalize to gold
+        1. If silver files exist AND settings match config.json -> use cache, finalize to gold
         2. If gold files exist -> skip everything (already done)
-        3. Otherwise -> extract PDFs to bronze, finalize to gold
+        3. Otherwise -> extract PDFs to silver, finalize to gold
         
         Args:
             pdf_files: List of PDF file paths to process
         """
-        self.bronze_dir.mkdir(parents=True, exist_ok=True)
+        self.silver_dir.mkdir(parents=True, exist_ok=True)
         self.gold_dir.mkdir(parents=True, exist_ok=True)
         self.landing_zone.mkdir(parents=True, exist_ok=True)
         
@@ -256,7 +256,7 @@ class ETLPipeline:
         
         log(f"Running ETL Pipeline", level="info")
         log(f"Landing zone: {self.landing_zone}", level="info")
-        log(f"Bronze directory: {self.bronze_dir}", level="info")
+        log(f"Silver directory: {self.silver_dir}", level="info")
         log(f"Gold directory: {self.gold_dir}", level="info")
         if existing_config and settings.LOADER_TYPE == "mineru":
             log(f"Extraction backend unchanged: {extraction_backend_same}, Cleaning settings unchanged: {cleaning_settings_same}", level="info")
@@ -284,8 +284,8 @@ class ETLPipeline:
             try:
                 # Generate hash for unique filename
                 file_hash = generate_file_hash(str(pdf_path))
-                bronze_dir_hash = self.bronze_dir / file_hash
-                bronze_md_file = bronze_dir_hash / f"{file_hash}.md"
+                silver_dir_hash = self.silver_dir / file_hash
+                silver_md_file = silver_dir_hash / f"{file_hash}.md"
                 gold_doc_dir = self.gold_dir / file_hash
                 
                 # Save raw PDF to landing zone with hash name
@@ -294,18 +294,18 @@ class ETLPipeline:
                     log(f"[{i}/{len(pdf_files)}] Saving raw PDF to landing zone: {file_hash}.pdf", level="info")
                     shutil.copy2(str(pdf_path), str(landing_pdf))
                 
-                # CACHE CHECK: Bronze (extraction)
-                # Reuse bronze if: directory exists AND extraction backend hasn't changed
-                bronze_exists = bronze_dir_hash.exists() and (bronze_md_file.exists() or (bronze_dir_hash).glob("*.md"))
+                # CACHE CHECK: Silver (extraction)
+                # Reuse silver if: directory exists AND extraction backend hasn't changed
+                silver_exists = silver_dir_hash.exists() and (silver_md_file.exists() or (silver_dir_hash).glob("*.md"))
                 if settings.LOADER_TYPE == "mineru":
-                    can_use_bronze_cache = bronze_exists and extraction_backend_same
+                    can_use_silver_cache = silver_exists and extraction_backend_same
                 else:
-                    can_use_bronze_cache = bronze_exists
+                    can_use_silver_cache = silver_exists
 
-                if can_use_bronze_cache:
-                    log(f"[{i}/{len(pdf_files)}] Using cached extraction from bronze: {file_hash}/", level="info")
-                    # Find the markdown file in the bronze directory
-                    md_files = list(bronze_dir_hash.glob("*.md"))
+                if can_use_silver_cache:
+                    log(f"[{i}/{len(pdf_files)}] Using cached extraction from silver: {file_hash}/", level="info")
+                    # Find the markdown file in the silver directory
+                    md_files = list(silver_dir_hash.glob("*.md"))
                     if settings.LOADER_TYPE == "mineru":
                         if md_files:
                             with open(md_files[0], 'r', encoding='utf-8') as f:
@@ -313,13 +313,13 @@ class ETLPipeline:
                         else:
                             cleaned_content = ""
                 else:
-                    if not bronze_exists:
-                        log(f"[{i}/{len(pdf_files)}] Bronze not found, extracting: {file_hash}/", level="info")
+                    if not silver_exists:
+                        log(f"[{i}/{len(pdf_files)}] Silver not found, extracting: {file_hash}/", level="info")
                     elif settings.LOADER_TYPE == "mineru":
                         if not extraction_backend_same:
                             log(f"[{i}/{len(pdf_files)}] Extraction backend changed, re-extracting: {file_hash}/", level="info")
                     
-                    # EXTRACT: Need to extract (either bronze missing or backend changed)
+                    # EXTRACT: Need to extract (either silver missing or backend changed)
                     log(f"[{i}/{len(pdf_files)}] Converting {pdf_path.name} (hash: {file_hash})...", level="info")
                     
                     # Create temp directory for mineru output
@@ -338,44 +338,44 @@ class ETLPipeline:
                             # Convert PDF to Markdown + all assets (images, metadata, etc.)
                             markdown_content, mineru_output_dir, backend_used = converter.convert(str(pdf_path), output_dir=temp_output)
                             
-                            # Create bronze hash directory
-                            bronze_dir_hash.mkdir(parents=True, exist_ok=True)
+                            # Create silver hash directory
+                            silver_dir_hash.mkdir(parents=True, exist_ok=True)
                             
-                            # Flatten mineru output: copy from auto/ or vlm/ subdirectories to bronze root
+                            # Flatten mineru output: copy from auto/ or vlm/ subdirectories to silver root
                             mineru_path = Path(mineru_output_dir)
                             for item in mineru_path.iterdir():
                                 if item.is_dir() and item.name in ["auto", "vlm"]:
                                     # Found method subdirectory, flatten its contents
                                     for sub_item in item.iterdir():
                                         if sub_item.is_file():
-                                            dest = bronze_dir_hash / sub_item.name
+                                            dest = silver_dir_hash / sub_item.name
                                             shutil.copy2(str(sub_item), str(dest))
                                         elif sub_item.is_dir():
-                                            dest = bronze_dir_hash / sub_item.name
+                                            dest = silver_dir_hash / sub_item.name
                                             if dest.exists():
                                                 shutil.rmtree(dest)
                                             shutil.copytree(str(sub_item), str(dest))
                                 elif item.is_file():
                                     # Copy loose files directly
-                                    dest = bronze_dir_hash / item.name
+                                    dest = silver_dir_hash / item.name
                                     shutil.copy2(str(item), str(dest))
                             
                             # Apply cleaning to markdown content
                             cleaned_content = self._get_cleaned_markdown(markdown_content, str(pdf_path))
                             
-                            # Save cleaned markdown to bronze
+                            # Save cleaned markdown to silver
                             pdf_name = Path(pdf_path).stem
-                            bronze_md_file = bronze_dir_hash / f"{pdf_name}.md"
-                            with open(bronze_md_file, 'w', encoding='utf-8') as f:
+                            silver_md_file = silver_dir_hash / f"{pdf_name}.md"
+                            with open(silver_md_file, 'w', encoding='utf-8') as f:
                                 f.write(cleaned_content)
                             
-                            log(f"     ✓ Extracted to bronze: {file_hash}/", level="info")
+                            log(f"     ✓ Extracted to silver: {file_hash}/", level="info")
                         elif settings.LOADER_TYPE == "docling":
-                            bronze_dir_hash.mkdir(parents=True, exist_ok=True)
+                            silver_dir_hash.mkdir(parents=True, exist_ok=True)
                             pdf_name = Path(pdf_path).stem
                             converter = get_converter(loader=settings.LOADER_TYPE)
-                            converter.convert(str(pdf_path), output_dir=str(bronze_dir_hash))
-                            log(f"     ✓ Extracted to bronze: {file_hash}/", level="info")
+                            converter.convert(str(pdf_path), output_dir=str(silver_dir_hash))
+                            log(f"     ✓ Extracted to silver: {file_hash}/", level="info")
                         
                     finally:
                         # Clean up temp directory
@@ -399,8 +399,8 @@ class ETLPipeline:
                     # Re-apply cleaning if settings changed or force_clean
                     if settings.LOADER_TYPE == "mineru":
                         if (not cleaning_settings_same or self.force_clean):
-                            # Get raw markdown from bronze
-                            md_files = list(bronze_dir_hash.glob("*.md"))
+                            # Get raw markdown from silver
+                            md_files = list(silver_dir_hash.glob("*.md"))
                             if md_files:
                                 with open(md_files[0], 'r', encoding='utf-8') as f:
                                     raw_markdown = f.read()
@@ -416,8 +416,8 @@ class ETLPipeline:
                         with open(gold_md_file, 'w', encoding='utf-8') as f:
                             f.write(cleaned_content)
                     elif settings.LOADER_TYPE == "docling":
-                        # Find the markdown file in the bronze directory
-                        md_files = list(bronze_dir_hash.glob("*.md"))
+                        # Find the markdown file in the silver directory
+                        md_files = list(silver_dir_hash.glob("*.md"))
                         if md_files:
                             shutil.copy2(str(md_files[0]), str(gold_md_file))
                     
@@ -427,13 +427,13 @@ class ETLPipeline:
                     if landing_pdf.exists():
                         shutil.copy2(str(landing_pdf), str(gold_pdf))
                     
-                    # 3. Copy images from bronze to gold/images/
-                    bronze_images_dir = bronze_dir_hash / "images"
-                    if bronze_images_dir.exists():
+                    # 3. Copy images from silver to gold/images/
+                    silver_images_dir = silver_dir_hash / "images"
+                    if silver_images_dir.exists():
                         gold_images_dir = gold_doc_dir / "images"
                         if gold_images_dir.exists():
                             shutil.rmtree(gold_images_dir)
-                        shutil.copytree(str(bronze_images_dir), str(gold_images_dir))
+                        shutil.copytree(str(silver_images_dir), str(gold_images_dir))
                     
                     # 4. Create metadata.json with image enrichment data (empty for now)
                     gold_metadata = gold_doc_dir / "metadata.json"

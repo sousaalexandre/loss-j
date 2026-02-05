@@ -53,7 +53,7 @@ def _split_markdown(documents: List[Document]) -> List[Document]:
     Markdown splitting otimizado para RAG + enriquecimento de metadados via _catalog.json.
 
     - Descobre automaticamente o(s) _catalog.json com base no caminho em doc.metadata["source"]
-      (suporta indexing via 03_gold/*.md e via 00_landing_zone/*.pdf).
+      (suporta indexing via 03_gold/*.md e via 01_bronze/*.pdf).
     - Split estrutural por headers e reconstrução de hierarquia por heurística (numeração tipo 2.6.2).
     - Chunking recursivo dentro de cada secção com separadores mais semânticos.
     - Mantém/normaliza 'source' (para funcionar bem com Chroma delete/get where={"source": ...}).
@@ -166,7 +166,7 @@ def _split_markdown(documents: List[Document]) -> List[Document]:
         candidates = []
         for lh in lakehouse_dirs:
             candidates.append(lh / "03_gold" / "_catalog.json")
-            candidates.append(lh / "00_landing_zone" / "_catalog.json")
+            candidates.append(lh / "01_bronze" / "_catalog.json")
 
         # key determinística p/ cache
         key = tuple(sorted([str(p) for p in candidates]))
@@ -179,7 +179,7 @@ def _split_markdown(documents: List[Document]) -> List[Document]:
 
         # primeiro landing_zone
         for p in candidates:
-            if p.as_posix().endswith("00_landing_zone/_catalog.json"):
+            if p.as_posix().endswith("01_bronze/_catalog.json"):
                 merged.update(_load_catalog_file(p))
 
         # depois 03_gold por cima
@@ -400,7 +400,7 @@ def _split_hierarchichal(documents: List[Document], chunk_size: Optional[int] = 
     """
     Hierarchical markdown splitting (headers -> subchunks) + metadata enrichment via indexed _catalog.json.
 
-    - Loads/merges _catalog.json automatically (00_landing_zone base + 03_gold override) based on doc.metadata["source"]
+    - Loads/merges _catalog.json automatically (01_bronze base + 03_gold override) based on doc.metadata["source"]
       and caches it across calls in the same process.
     - Infers doc_id from metadata (doc_id/id/hash/sha...) or from filename stem of source.
     - Merges catalog entry into metadata without overwriting existing non-empty values.
@@ -626,7 +626,7 @@ def _split_hierarchichal(documents: List[Document], chunk_size: Optional[int] = 
         candidates = []
         for lh in lakehouse_dirs:
             candidates.append(lh / "03_gold" / "_catalog.json")
-            candidates.append(lh / "00_landing_zone" / "_catalog.json")
+            candidates.append(lh / "01_bronze" / "_catalog.json")
 
         key = tuple(sorted([str(p) for p in candidates]))
         if cache_key == key and isinstance(cache_val, dict):
@@ -636,7 +636,7 @@ def _split_hierarchichal(documents: List[Document], chunk_size: Optional[int] = 
 
         # landing_zone first
         for p in candidates:
-            if p.as_posix().endswith("00_landing_zone/_catalog.json"):
+            if p.as_posix().endswith("01_bronze/_catalog.json"):
                 merged.update(_load_catalog_file(p))
 
         # gold overrides

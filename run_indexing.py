@@ -12,7 +12,7 @@ def main():
     """Execute the RAG indexing pipeline based on the configured loader type.
     
     Determines the indexing mode based on the LOADER_TYPE setting:
-    - If LOADER_TYPE is 'pdfloader': indexes PDFs from the landing zone (00_landing_zone)
+    - If LOADER_TYPE is 'pdfloader': indexes PDFs from the landing zone (01_bronze)
     - Otherwise: indexes markdown files from the gold layer (03_gold) processed by ETL
     
     Logs a summary of indexing results including total documents indexed,
@@ -58,7 +58,7 @@ def main():
             sys.exit(1)
     else:
         # PDF mode: load from landing zone
-        landing_zone = Path("data_lakehouse/00_landing_zone")
+        landing_zone = Path("data_lakehouse/01_bronze")
         
         if not landing_zone.exists():
             log(f"ERROR: Landing zone not found at {landing_zone}", level="error")

@@ -15,7 +15,7 @@ def get_document_title(source_path: str) -> str:
         hash_name = source_file.stem  # Get filename without extension
         
         # Look for metadata JSON in landing zone
-        landing_zone = Path("data_lakehouse/00_landing_zone")
+        landing_zone = Path("data_lakehouse/01_bronze")
         metadata_file = landing_zone / f"{hash_name}.json"
         
         if metadata_file.exists():
