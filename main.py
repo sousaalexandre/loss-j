@@ -6,7 +6,7 @@ from pathlib import Path
 
 def get_document_title(source_path: str) -> str:
     """
-    Get the document title from metadata JSON.
+    Get the document title from the Bronze catalog JSON.
     Falls back to original_filename, then hash name if not found.
     """
     try:
@@ -14,18 +14,19 @@ def get_document_title(source_path: str) -> str:
         source_file = Path(source_path)
         hash_name = source_file.stem  # Get filename without extension
         
-        # Look for metadata JSON in landing zone
-        landing_zone = Path("data_lakehouse/01_bronze")
-        metadata_file = landing_zone / f"{hash_name}.json"
+        # Look for metadata in the Bronze catalog
+        catalog_file = Path("data_lakehouse/01_bronze/_catalog.json")
         
-        if metadata_file.exists():
-            with open(metadata_file, 'r', encoding='utf-8') as f:
-                metadata = json.load(f)
-                # Return title if available, otherwise original filename
-                if metadata.get("title"):
-                    return metadata["title"]
-                if metadata.get("original_filename"):
-                    return metadata["original_filename"]
+        if catalog_file.exists():
+            with open(catalog_file, 'r', encoding='utf-8') as f:
+                catalog = json.load(f)
+                if hash_name in catalog:
+                    metadata = catalog[hash_name]
+                    # Return title if available, otherwise original filename
+                    if metadata.get("title"):
+                        return metadata["title"]
+                    if metadata.get("original_filename"):
+                        return metadata["original_filename"]
     except Exception as e:
         # Silently fall back if any error
         pass
@@ -68,11 +69,14 @@ def main():
                     if documents and not response.strip().startswith("Não sei"):
                         st.subheader("Fontes:")
                         sources_text = ""
+                        unique_sources = set()
                         for doc in documents:
                             source_path = doc.metadata.get('source', 'Fonte Desconhecida')
                             file_title = get_document_title(source_path)
-                            st.write(f"- **{file_title}**")
-                            sources_text += f"- **{file_title}**\n"
+                            if file_title not in unique_sources:
+                                unique_sources.add(file_title)
+                                st.write(f"- **{file_title}**")
+                                sources_text += f"- **{file_title}**\n"
                         full_content += f"\n\n**Fontes:**\n{sources_text}"
                     st.session_state.messages.append({"role": "assistant", "content": full_content})
                 except FileNotFoundError:
