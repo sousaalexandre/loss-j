@@ -28,7 +28,7 @@ class RAGIndexingPipeline:
                 self.source_dir.mkdir(parents=True, exist_ok=True)
         else:
             # Load from landing zone (direct PDF indexing)
-            self.source_dir = Path("data_lakehouse/00_landing_zone")
+            self.source_dir = Path("data_lakehouse/01_bronze")
             self.env_name = "raw"
             
             if not self.source_dir.exists():

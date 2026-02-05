@@ -16,7 +16,7 @@ def get_document_title(source_filename: str) -> str:
         hash_name = source_file.stem  # Get filename without extension
         
         # Look for catalog in landing zone
-        landing_zone = Path("data_lakehouse/00_landing_zone")
+        landing_zone = Path("data_lakehouse/01_bronze")
         catalog_file = landing_zone / "_catalog.json"
         
         if catalog_file.exists():
@@ -224,7 +224,7 @@ if uploaded_files:
             st.session_state.in_metadata_form = True
             st.rerun()
     else:
-        landing_zone = Path("data_lakehouse/00_landing_zone")
+        landing_zone = Path("data_lakehouse/01_bronze")
         landing_zone.mkdir(parents=True, exist_ok=True)
     # Initialize session state for metadata if not exists
     if "metadata_forms" not in st.session_state:
@@ -386,7 +386,7 @@ if uploaded_files:
     with col_confirm:
         if st.button("✓ Confirmar e Indexar", width='stretch', type="primary"):
             # ... (Rest of your indexing logic remains exactly the same)
-            landing_zone = Path("data_lakehouse/00_landing_zone")
+            landing_zone = Path("data_lakehouse/01_bronze")
             landing_zone.mkdir(parents=True, exist_ok=True)
             
             progress_bar = st.progress(0)
