@@ -21,7 +21,7 @@ The architecture consists of three logical layers:
 ---
 
 ## 2. Layer 1: Bronze (`01_bronze`)
-Layer 1 (Bronze) is the immutable entry point for all source documents. It uses **Content-Addressable Storage (CAS)** to ensure data integrity and deduplication.
+Layer 1 (Bronze), also known as the **"Landing Zone"**, is the immutable entry point for all source documents. It uses **Content-Addressable Storage (CAS)** to ensure data integrity and deduplication.
 
 ### 2.1 Storage Standards
 * **Naming Convention:** Files are renamed to the **SHA-256 hash** of their binary content (e.g., `168138...e67.pdf`).
