@@ -28,7 +28,7 @@ A Retrieval-Augmented-Generation-based system for document processing and intell
 ### Setup
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:sousaalexandre/loss-j.git
 cd loss-j
 
 python -m venv venv
