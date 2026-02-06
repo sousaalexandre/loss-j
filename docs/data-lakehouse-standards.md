@@ -1,4 +1,4 @@
-# LOSS-J: Data Lake Architecture
+# LOSS-J: Data Lakehouse Architecture
 
 **Version:** 2 | **Date:** 30 January 2026 | **Authors:** Professor Rui Pereira, Ricardo Yang
 
@@ -9,7 +9,7 @@
 ---
 
 ## 1. Architectural Methodology
-The preprocessing stage implements a **Data Lakehouse** architecture using the [Medallion](https://www.databricks.com/glossary/medallion-architecture) design pattern. This tiered approach manages the refinement of unstructured data (PDFs) into structured knowledge artifacts.
+The preprocessing stage implements a **Data Lakehouse** architecture using the [Medallion](https://www.databricks.com/glossary/medallion-architecture) design pattern. This tiered approach manages the refinement of unstructured data (PDFs) into structured knowledge artifacts. However, in our implementation, the output is unstructured data (Markdowns).
 
 The architecture consists of three logical layers:
 * **Layer 1: Bronze** (`01_bronze`) - Immutable raw extraction with content-addressed storage (CAS).
