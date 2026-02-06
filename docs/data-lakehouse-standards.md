@@ -1,4 +1,4 @@
-# LOSS-J: Data Lakehouse Standards
+# LOSS-J: Data Lake Architecture
 
 **Version:** 2 | **Date:** 30 January 2026 | **Authors:** Professor Rui Pereira, Ricardo Yang
 
