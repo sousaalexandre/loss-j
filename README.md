@@ -12,7 +12,7 @@ A Retrieval-Augmented-Generation-based system for document processing and intell
 - [Usage](#usage)
 - [Architecture](#architecture)
 - [Data Lakehouse](#data-lakehouse)
-- [Pipeline Components](#pipeline-components)
+- [System Components](#system-components)
 - [Configuration](#configuration)
 - [Current Limitations](#current-limitations)
 
@@ -138,7 +138,7 @@ streamlit run main.py
 The RAG system includes a semantic accuracy evaluation framework to assess response quality.
 
 #### Why Evaluate?
-Different configurations of document converters and splitting strategies produce varying results. Evaluation helps identify which combination best balances accuracy, completeness, and retrieval quality.
+Different configurations of document converters and chunk splitting strategies produce varying results. Evaluation helps identify which combination best balances accuracy, completeness, and retrieval quality.
 
 #### How It Works
 The evaluation script (`test-eval.py`) runs test queries through the RAG system and compares generated responses against reference "expected" responses. An LLM evaluates each response on **semantic accuracy** (0-100) based on:
@@ -203,7 +203,9 @@ The ETL pipeline implements intelligent caching, with the goal of optimizing dev
 
 ---
 
-## Pipeline Components
+## System Components
+
+The system is composed by two pipelines (ETL and indexing). The data ingestion process is controlled by a set of configurations. It also provides an API to enable external application submit queries to the knowledge base.
 
 ### 1. ETL Pipeline
 
@@ -223,7 +225,7 @@ ETLPipeline(force_clean=False).run(pdf_files)
 ```
 
 **Stages:**
-1. **Organize**: Hash PDFs, copy to landing zone, register in catalog
+1. **Organize**: Hashed name PDFs, copy to landing zone, register in catalog
 2. **Extract**: Convert PDF → Markdown using the configured converter (silver layer)
 3. **Transformation**: Apply transformations such as cleaning and rebuild hierarchy
 4. **Finalize**: Save cleaned markdown + assets to Gold layer
@@ -246,7 +248,7 @@ graph LR
     C -->|Store| D["Vector Database<br/>(ChromaDB)"]
 ```
 
-Indexes documents into the vector store:
+Indexes documents from gold layer or bronze layer (if etl not used) into the vector store:
 
 ```python
 RAGIndexingPipeline(use_etl=True).run()
@@ -273,7 +275,7 @@ RAGIndexingPipeline(use_etl=True).run()
 ### 3. Ingestion Controller 
 [`pipeline_ingestion_controller.py`](src/pipelines/pipeline_ingestion_controller.py)
 
-Orchestrates the complete pipeline:
+Orchestrates the complete ingestion pipeline:
 
 ```python
 run_ingestion(pdf_files, file_metadata, progress_callback)
@@ -288,10 +290,10 @@ run_ingestion(pdf_files, file_metadata, progress_callback)
 - Progress callbacks for UI integration
 - Metadata preservation through catalogs
 
-### 4. Inference Pipeline
+### 4. API
 [`pipeline_inference.py`](src/pipelines/pipeline_inference.py)
 
-Handles user queries:
+API that provides a mechanism that enables other applications submit queries to the knowledge base:
 
 ```python
 query_handler(prompt) → {"response": str, "documents": list}
