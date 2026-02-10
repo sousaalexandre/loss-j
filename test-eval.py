@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import os
 from datetime import datetime
-from src.chains.chain_retrieving_generating import query_handler
+from src.api.query_handler import query_handler
 from src.services.llm_gateway import get_llm
 from pydantic import BaseModel, Field
 

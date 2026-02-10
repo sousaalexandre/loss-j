@@ -98,7 +98,7 @@ The script will:
 > [!NOTE] 
 > **Manual Step:** Categories are empty by default. You must fill them manually by directly editing the [_catalog.json](data_lakehouse/01_bronze/_catalog.json).
 
-See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for the complete catalog schema.
+See [Data Lakehouse Architecture](docs/data-lakehouse-architecture.md) for the complete catalog schema.
 
 #### 2. Run ETL Pipeline
 
@@ -131,7 +131,7 @@ streamlit run main.py
 - **Evaluation Results**: View performance metrics. See [Evaluation](#evaluation) section for more details.
 
 > [!WARNING]
-> Development focus has been on core pipeline logic, not the web interface. **For document ingestion and indexing, use [command-line scripts](#command-line-scripts)** instead. The web interface is suitable for simple interaction (chatting) with your documents and viewing evaluation results.
+> The web interface is functional but not production-ready. **For document ingestion and indexing, use [command-line scripts](#command-line-scripts)** instead. The interface is suitable for simple interactions (chatting with your documents and viewing evaluation results).
 
 ### Evaluation
 
@@ -193,7 +193,7 @@ To address these challenges, we implemented a **Data Lakehouse architecture** ba
 
 The preprocessing stage is inspired by the [**Medallion Architecture**](https://www.databricks.com/glossary/medallion-architecture) for managing document transformation before being loaded into the final layer (Gold).
 
-See [Data Lakehouse Standards](docs/data-lakehouse-standards.md) for complete specification.
+See [Data Lakehouse Architecture](docs/data-lakehouse-architecture.md) for complete specification.
 
 The ETL pipeline implements intelligent caching, with the goal of optimizing development:
 
@@ -273,7 +273,7 @@ RAGIndexingPipeline(use_etl=True).run()
 - `CHUNK_OVERLAP`: Overlap between chunks (default: 200)
 
 ### 3. Ingestion Controller 
-[`pipeline_ingestion_controller.py`](src/pipelines/pipeline_ingestion_controller.py)
+[`controller.py`](src/pipelines/controller.py)
 
 Orchestrates the complete ingestion pipeline:
 
@@ -291,7 +291,7 @@ run_ingestion(pdf_files, file_metadata, progress_callback)
 - Metadata preservation through catalogs
 
 ### 4. API
-[`pipeline_inference.py`](src/pipelines/pipeline_inference.py)
+[`query_handler.py`](src/api/query_handler.py)
 
 API that provides a mechanism that enables other applications submit queries to the knowledge base:
 

@@ -1,5 +1,5 @@
 import streamlit as st
-from src.pipelines.pipeline_inference import query_handler
+from src.api.query_handler import query_handler
 import os
 import json
 from pathlib import Path
@@ -41,6 +41,7 @@ def main():
     including message history, user input handling, and response generation with
     document sources.
     """
+    st.set_page_config(layout="wide", initial_sidebar_state="expanded")
     st.set_page_config(page_title="LOSS-J", page_icon="💬")
     st.title("LOSS-J RAG (Beta)")
 

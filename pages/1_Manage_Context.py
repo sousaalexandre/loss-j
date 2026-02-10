@@ -1,7 +1,7 @@
 import streamlit as st
 import base64
 import json
-from src.pipelines.pipeline_ingestion_controller import run_ingestion
+from src.pipelines.controller import run_ingestion
 from src.services.vector_db import get_database_summary
 from pathlib import Path
 

@@ -1,6 +1,6 @@
 # LOSS-J: Data Lakehouse Architecture
 
-**Version:** 2 | **Date:** 30 January 2026 | **Authors:** Professor Rui Pereira, Ricardo Yang
+**Version:** 3 | **Date:** 30 January 2026 | **Authors:** Professor Rui Pereira, Ricardo Yang
 
 **Purpose:** This technical specification document establishes standardized architecture principles and data governance guidelines for PDF-to-knowledge-artifact transformation pipelines. It defines immutable ingestion protocols, transformation layer specifications, and consumption-ready output interfaces to ensure reproducible, auditable, and maintainable document processing workflows suitable for Retrieval-Augmented Generation (RAG) systems.
 

@@ -3,7 +3,8 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.title("Comparação de Resultados (Beta)")
+st.set_page_config(layout="wide", initial_sidebar_state="expanded")
+st.title("Comparação de Resultados")
 st.markdown("Selecione um arquivo de resultados de teste para ver a tabela de comparação.")
 
 st.info("💡 Para gerar novos resultados: Edite **query.json** e execute **test-eval.py** com as suas questões e respostas esperadas.")
