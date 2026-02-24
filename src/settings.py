@@ -54,6 +54,7 @@ CHUNK_OVERLAP = 200        # Characters of overlap between chunks
 
 LLM_MODEL_NAME = "gpt-4o-mini"
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
+VLM_MODEL_NAME = "google/gemma-3-4b-it"
 
 
 # ============================================================================
