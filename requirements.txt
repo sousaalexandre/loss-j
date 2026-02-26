@@ -116,10 +116,10 @@ matplotlib==3.10.7
 mdurl==0.1.2
 mineru==2.6.4
 mineru-vl-utils==0.1.15
-mlx==0.29.4
-mlx-lm==0.28.3
-mlx-metal==0.29.4
-mlx-vlm==0.3.5
+# mlx==0.29.4
+# mlx-lm==0.28.3
+# mlx-metal==0.29.4
+# mlx-vlm==0.3.5
 mmh3==5.2.0
 modelscope==1.31.0
 mpire==2.10.2
@@ -131,9 +131,9 @@ narwhals==2.8.0
 networkx==3.5
 numpy==2.2.6
 oauthlib==3.3.1
-ocrmac==1.0.1
+# ocrmac==1.0.1
 omegaconf==2.3.0
-onnxruntime==1.23.1
+onnxruntime==1.20.1
 openai==2.5.0
 opencv-python==4.12.0.88
 opencv-python-headless==4.12.0.88
@@ -177,11 +177,11 @@ pydub==0.25.1
 pygments==2.19.2
 pylatexenc==2.10
 pymupdf==1.26.6
-pyobjc-core==12.1
-pyobjc-framework-cocoa==12.1
-pyobjc-framework-coreml==12.1
-pyobjc-framework-quartz==12.1
-pyobjc-framework-vision==12.1
+# pyobjc-core==12.1
+# pyobjc-framework-cocoa==12.1
+# pyobjc-framework-coreml==12.1
+# pyobjc-framework-quartz==12.1
+# pyobjc-framework-vision==12.1
 pyparsing==3.2.5
 pypdf==6.1.1
 pypdfium2==4.30.0
@@ -258,7 +258,7 @@ ultralytics==8.3.228
 ultralytics-thop==2.0.18
 urllib3==2.3.0
 uvicorn==0.38.0
-uvloop==0.22.1
+#uvloop==0.22.1
 watchfiles==1.1.1
 wcwidth==0.2.14
 websocket-client==1.9.0
