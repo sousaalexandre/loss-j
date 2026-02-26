@@ -427,29 +427,14 @@ class ETLPipeline:
                     if landing_pdf.exists():
                         shutil.copy2(str(landing_pdf), str(gold_pdf))
                     
-                    # 3. Copy images from silver to gold/images/
-                    silver_images_dir = silver_dir_hash / "images"
+                    # 3. Copy images from silver to gold/artifacts/
+                    silver_images_dir = silver_dir_hash / "artifacts"
                     if silver_images_dir.exists():
-                        gold_images_dir = gold_doc_dir / "images"
+                        gold_images_dir = gold_doc_dir / "artifacts"
                         if gold_images_dir.exists():
                             shutil.rmtree(gold_images_dir)
                         shutil.copytree(str(silver_images_dir), str(gold_images_dir))
-                    
-                    # 4. Create metadata.json with image enrichment data (empty for now)
-                    gold_metadata = gold_doc_dir / "metadata.json"
-                    metadata_content = {"images": {}}
-                    
-                    # If images directory exists, populate metadata with empty descriptions
-                    gold_images_dir = gold_doc_dir / "images"
-                    if gold_images_dir.exists():
-                        for img_file in gold_images_dir.glob("*.jpg"):
-                            metadata_content["images"][img_file.name] = {
-                                "description": "",
-                                "tags": []
-                            }
-                    
-                    with open(gold_metadata, 'w', encoding='utf-8') as f:
-                        json.dump(metadata_content, f, indent=2)
+                
                 else:
                     log(f"     → Already finalized in gold (cleaning unchanged): {file_hash}/", level="info")
                 
@@ -471,10 +456,10 @@ class ETLPipeline:
                 gold_entry["processed_at"] = datetime.now().isoformat()
                 
                 # Count images in the gold bundle
-                gold_images_dir = gold_doc_dir / "images"
+                gold_images_dir = gold_doc_dir / "artifacts"
                 image_count = 0
                 if gold_images_dir.exists():
-                    image_count = len(list(gold_images_dir.glob("*.jpg")))
+                    image_count = len(list(gold_images_dir.glob("*.png")))
                 gold_entry["images"] = image_count
                 
                 # Update gold catalog

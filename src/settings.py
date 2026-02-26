@@ -65,4 +65,4 @@ VLM_MODEL_NAME = "google/gemma-3-27b-it"
 VECTOR_DB_PATH = "vectorstore_db"
 
 # Number of documents to retrieve for RAG
-RETRIEVER_K = 50
+RETRIEVER_K = 20
