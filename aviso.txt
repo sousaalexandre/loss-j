@@ -1,4 +1,4 @@
-Quando se tenta instalar requirements com Windows ou Linux as seguintes bibliotecas dão erro:
+Requirements apenas funciona Python 3.11.x/3.12.x e quando se tenta instalar com Windows ou Linux as seguintes bibliotecas dão erro:
 mlx==0.29.4
 mlx-lm==0.28.3
 mlx-metal==0.29.4
