@@ -96,7 +96,7 @@ data_lakehouse/
 ```
 
 ### 4.2 Bundle Components
-* **Content (`.md`):** The processed Markdown file contains clean text and may optionally include image descriptions, depending on the ETL option selected. When image descriptions are enabled, each image position includes a tag like <!-- image 1 description -->, followed by a paragraph with the description, and ends with <!-- image description ends -->. When image descriptions are disabled, the image position contains only the image-number marker. Image references point to the local artifacts/ directory.
+* **Content (`.md`):** The processed Markdown file contains clean text and may optionally include image descriptions, depending on the ETL option selected. When image descriptions are enabled, each image position includes a tag like `<!-- image 1 description -->`, followed by a paragraph with the description, and ends with `<!-- image description ends -->`. When image descriptions are disabled, the image position contains only the image-number marker. Image references point to the local artifacts/ directory.
 * **Source (`.pdf`):** A copy of the original binary from landing zone.
 * **Assets (`artifacts/`):** Extracted figures and charts saved as `.png`. Filenames are the order they appear on the PDF and the hash of the image content.
 
