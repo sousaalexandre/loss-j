@@ -1,6 +1,6 @@
 # LOSS-J: Data Lakehouse Architecture
 
-**Version:** 3 | **Date:** 30 January 2026 | **Authors:** Professor Rui Pereira, Ricardo Yang
+**Version:** 4 | **Date:** 4 March 2026 | **Authors:** Professor Rui Pereira, Ricardo Yang, José Guilherme Santos
 
 **Purpose:** This technical specification document establishes standardized architecture principles and data governance guidelines for PDF-to-knowledge-artifact transformation pipelines. It defines immutable ingestion protocols, transformation layer specifications, and consumption-ready output interfaces to ensure reproducible, auditable, and maintainable document processing workflows suitable for Retrieval-Augmented Generation (RAG) systems.
 
@@ -78,7 +78,7 @@ Layer 2 (Silver) is the internal processing layer where curated and enriched dat
 
 ---
 
-## 4. Layer 3: Gold Layer (03_gold)
+## 4. Layer 3: Gold Layer (`03_gold`)
 The Gold Layer is the final output optimized for RAG indexing. It is organized into **Document Bundles**, where each document is expanded into a dedicated directory containing processed text, extracted assets, and enrichment data.
 
 ### 4.1 Directory Structure
@@ -91,33 +91,15 @@ data_lakehouse/
     └── 0bd754bf200c4e019b8b4cb50886c.../
         ├── 0bd754bf...183.md   # 1. Cleaned Content
         ├── 0bd754bf...183.pdf  # 2. Source Copy
-        ├── metadata.json       # 3. Image Enrichment Data
-        └── images/
-            └── 2c81b329d1fceb1369...f88.jpg
+        └── artifacts/
+            └── image_000001_2c81b329d1fceb1369...f88.png
 ```
 
 ### 4.2 Bundle Components
-* **Content (`.md`):** The clean Markdown text. Image references point to the local images/ directory.
+* **Content (`.md`):** The processed Markdown file contains clean text and may optionally include image descriptions, depending on the ETL option selected. When image descriptions are enabled, each image position includes a tag like <!-- image 1 description -->, followed by a paragraph with the description, and ends with <!-- image description ends -->. When image descriptions are disabled, the image position contains only the image-number marker. Image references point to the local artifacts/ directory.
 * **Source (`.pdf`):** A copy of the original binary from landing zone.
-* **Assets (`images/`):** Extracted figures and charts saved as `.jpg`. Filenames are the hash of the image content.
-* **Enrichment (`metadata.json`):** A sidecar file mapping image filenames to AI-generated descriptions.
+* **Assets (`artifacts/`):** Extracted figures and charts saved as `.png`. Filenames are the order they appear on the PDF and the hash of the image content.
 
-Enrichment Schema (`metadata.json`):
-```json
-{
-  "images": {
-    "2c81b329d1fceb1369...f88.jpg": {
-      "description": "Diagram showing organizational structure.",
-      "tags": ["diagram", "structure", "military"]
-    },
-    "1a2b3c4d5e6f7g8h9i0j...k11.jpg": {
-      "description": "Personnel organizational chart.",
-      "tags": ["chart", "organization"]
-    },
-    ...
-  }
-}
-```
 
 ### 4.3 The Gold Catalog (`_catalog.json`)
 Located at `03_gold/_catalog.json`, this registry mirrors the Bronze catalog but includes processing metrics.

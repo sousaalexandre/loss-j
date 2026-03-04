@@ -3,6 +3,7 @@ from pathlib import Path
 from src.logger import log
 from src.preprocessing.mineru import parse_single_pdf_default
 from src.preprocessing.docling import parse_pdf_docling
+from src.preprocessing.docling_images import parse_pdf_docling_images
 import tempfile
 import shutil
 
@@ -34,7 +35,7 @@ class DoclingConverter(PDFConverter):
     def convert(self, pdf_path: str, output_dir: str = None) -> tuple:
         """
         Convert PDF using Docling.
-        Preserves all extracted files (images, metadata, etc.) in output directory.
+        Preserves all extracted files (images, etc.) in output directory.
         
         Args:
             pdf_path (str): Path to the PDF file
@@ -50,6 +51,40 @@ class DoclingConverter(PDFConverter):
             output_dir = tempfile.mkdtemp(prefix="docling_")
         
         docling_output = parse_pdf_docling(
+            pdf_path=pdf_path,
+            output_dir=output_dir,
+        )
+        
+        log(f"Successfully converted {pdf_path} with Docling", level="info")
+        
+        return None
+    
+class DoclingImagesConverter(PDFConverter):
+    """PDF to Markdown converter using Docling backend."""
+    
+    def __init__(self):
+        """Initialize the Docling with image descriptions converter."""
+        self.backend_used = "docling-images"
+        
+    def convert(self, pdf_path: str, output_dir: str = None) -> tuple:
+        """
+        Convert PDF using Docling with image descriptions.
+
+        Preserves all extracted files (images, etc.) in output directory.
+        
+        Args:
+            pdf_path (str): Path to the PDF file
+            output_dir (str): Directory to store all extracted files
+            
+        Returns:
+            None: Docling with images does not return markdown content directly, it is stored in output_dir
+        """
+        log(f"Converting PDF using Docling with image descriptions: {pdf_path}", level="info")
+        
+        if output_dir is None:
+            output_dir = tempfile.mkdtemp(prefix="docling_")
+        
+        docling_output = parse_pdf_docling_images(
             pdf_path=pdf_path,
             output_dir=output_dir,
         )
@@ -218,6 +253,10 @@ def get_converter(loader: str, backend: str = None, server_url: str = None) -> P
     if loader == "docling":
         log("Using Docling converter", level="info")
         return DoclingConverter()
+    
+    elif loader == "docling-images":
+        log("Using Docling with Images converter", level="info")
+        return DoclingImagesConverter()
     
     elif loader == "mineru" and backend == "vlm-http-client":
         if not server_url:
