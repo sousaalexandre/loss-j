@@ -370,7 +370,7 @@ class ETLPipeline:
                                 f.write(cleaned_content)
                             
                             log(f"     ✓ Extracted to silver: {file_hash}/", level="info")
-                        elif settings.LOADER_TYPE == "docling":
+                        elif settings.LOADER_TYPE == "docling" or settings.LOADER_TYPE == "docling-images":
                             silver_dir_hash.mkdir(parents=True, exist_ok=True)
                             pdf_name = Path(pdf_path).stem
                             converter = get_converter(loader=settings.LOADER_TYPE)
@@ -415,7 +415,7 @@ class ETLPipeline:
                     if settings.LOADER_TYPE == "mineru":
                         with open(gold_md_file, 'w', encoding='utf-8') as f:
                             f.write(cleaned_content)
-                    elif settings.LOADER_TYPE == "docling":
+                    elif settings.LOADER_TYPE == "docling" or settings.LOADER_TYPE == "docling-images":
                         # Find the markdown file in the silver directory
                         md_files = list(silver_dir_hash.glob("*.md"))
                         if md_files:

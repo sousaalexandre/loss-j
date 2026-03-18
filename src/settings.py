@@ -11,6 +11,7 @@ load_dotenv()
 # "mineru": PDF → Markdown (ETL) → Cleaning → Indexing 
 # "pdfloader": PDF → Indexing directly (faster, no cleaning)
 # "docling": PDF → Markdown via Docling (ETL) → Indexing
+# "docling-images": PDF → Markdown with Images descriptions via Docling (ETL) → Indexing with image support
 LOADER_TYPE = "docling"
 
 
