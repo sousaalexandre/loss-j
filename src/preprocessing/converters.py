@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from src.logger import log
-from src.preprocessing.mineru import parse_single_pdf_default
 from src.preprocessing.docling import parse_pdf_docling
 from src.preprocessing.docling_images import parse_pdf_docling_images
 import tempfile
@@ -111,15 +110,17 @@ class MinerUHTTPConverter(PDFConverter):
         """
         Convert PDF using MinerU VLM HTTP Client with fallback to pipeline.
         Preserves all extracted files (images, metadata, etc.) in output directory.
-        
+
         Args:
             pdf_path (str): Path to the PDF file
             output_dir (str): Directory to store all extracted files (parent of auto/vlm/)
-            
+
         Returns:
             tuple: (markdown_content: str, output_directory: str, backend_used: str)
                    output_directory contains auto/ or vlm/ subdirectories with all files
         """
+        from src.preprocessing.mineru import parse_single_pdf_default
+
         log(f"Converting PDF using MinerU HTTP Client: {pdf_path}", level="info")
         
         if output_dir is None:
@@ -191,15 +192,17 @@ class MinerUPipelineConverter(PDFConverter):
         """
         Convert PDF using MinerU local pipeline.
         Preserves all extracted files (images, metadata, etc.) in output directory.
-        
+
         Args:
             pdf_path (str): Path to the PDF file
             output_dir (str): Directory to store all extracted files (parent of auto/vlm/)
-            
+
         Returns:
             tuple: (markdown_content: str, output_directory: str, backend_used: str)
                    output_directory contains auto/ or vlm/ subdirectories with all files
         """
+        from src.preprocessing.mineru import parse_single_pdf_default
+
         log(f"Converting PDF using MinerU Pipeline: {pdf_path}", level="info")
         
         if output_dir is None:

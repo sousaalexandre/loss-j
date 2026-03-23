@@ -1,0 +1,22 @@
+services:
+  loss-j:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loss-j-app
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./data_lakehouse:/app/data_lakehouse
+      - ./vectorstore_db:/app/vectorstore_db
+      - ./outputs:/app/outputs
+      - ./uploads:/app/uploads
+    networks:
+      - loss-j-network
+    restart: unless-stopped
+
+networks:
+  loss-j-network:
+    driver: bridge
