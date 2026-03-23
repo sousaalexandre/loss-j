@@ -2,9 +2,6 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 from typing import List
 from src.logger import log
-from src.utils import generate_file_hash
-from src.preprocessing.mineru import pdf_to_md
-from src.preprocessing.cleaners import apply_cleaning
 
 import src.settings as settings
 import os
@@ -97,6 +94,10 @@ def load_document_mineru(file_path: str) -> List[Document]:
     Returns:
         List[Document]: A list containing a single Document object with processed Markdown content
     """
+
+    from src.preprocessing.mineru import pdf_to_md
+    from src.preprocessing.cleaners import apply_cleaning
+
     if cached_md_path and os.path.exists(cached_md_path):
         log(f"Cache hit. Loading Markdown from: {cached_md_path}", level="info")
         with open(cached_md_path, "r", encoding="utf-8") as f:
