@@ -62,6 +62,10 @@ Configure the backend and server URL in [settings.py](src/settings.py):
 
 ## Usage
 
+### Docker Deployment
+
+For Docker-based deployment, refer to [DOCKER.md](DOCKER.md) for complete instructions on building and running the application in a container.
+
 ### Workflow Overview
 
 The typical development workflow consists of three steps:
@@ -167,6 +171,7 @@ python test-eval.py
 
 Results are saved as timestamped CSV files in [outputs/results/](outputs/results/).
 
+##### Benchmark
 See the complete results table [here](https://docs.google.com/spreadsheets/d/1PSo9qhHn55MSrnKrOmchA2SSj48x_8-9jNRj0pcXxmg/edit?usp=sharing).
 
 ---
@@ -321,11 +326,7 @@ All settings are centralized in [`settings.py`](src/settings.py):
    - The Streamlit interface works but is not production-ready. It lacks polish and advanced features.
    - Use command-line scripts for document processing workflows.
 
-2. **Images Are Not Used in RAG**
-   - Images are extracted (if using mineru) and stored in Gold bundles but are not included as context in responses.
-   - Future versions may add image understanding capabilities.
-
-3. **MinerU Has High Hardware Requirements**
+2. **MinerU Has High Hardware Requirements**
    - MinerU demands significant computational resources.
    - **Recommendation:** Use `docling` instead, which is lighter, faster, and produces better results (per evaluation tests).
 
