@@ -172,8 +172,7 @@ python test-eval.py
 Results are saved as timestamped CSV files in [outputs/results/](outputs/results/).
 
 ##### Benchmark
-See the complete results table [here](https://docs.google.com/spreadsheets/d/1PSo9qhHn55MSrnKrOmchA2SSj48x_8-9jNRj0pcXxmg/edit?usp=sharing){:target="_blank"}.
-
+See the complete results table <a href="https://docs.google.com/spreadsheets/d/1PSo9qhHn55MSrnKrOmchA2SSj48x_8-9jNRj0pcXxmg/edit?usp=sharing" target="_blank" rel="noopener noreferrer">here</a>.
 ---
 
 
