@@ -65,20 +65,19 @@ def check_file_exists_vector_store(file_path: str) -> bool:
     return len(results.get('ids', [])) > 0
 
 
+_RETRIEVER_INSTANCE = None
+
 def get_retriever() -> VectorStoreRetriever:
     """
     Creates and returns a retriever from the persisted ChromaDB vector store.
-
-    This function connects to the existing database, initializes it with the
-    correct embedding model, and returns an object capable of searching for
-    relevant documents.
-
-    Returns:
-        VectorStoreRetriever: An object configured to search the vector database.
-    
-    Raises:
-        FileNotFoundError: If the database path does not exist.
+    Uses a singleton pattern to ensure thread-safety and prevent connection errors
+    during high-concurrency access.
     """
+    global _RETRIEVER_INSTANCE
+    
+    if _RETRIEVER_INSTANCE is not None:
+        return _RETRIEVER_INSTANCE
+
     if not os.path.exists(settings.VECTOR_DB_PATH):
         raise FileNotFoundError(
             f"Vector database not found at path: {settings.VECTOR_DB_PATH}. "
@@ -92,7 +91,8 @@ def get_retriever() -> VectorStoreRetriever:
         embedding_function=embedding_function
     )
 
-    return vector_store.as_retriever(search_kwargs={"k": settings.RETRIEVER_K})
+    _RETRIEVER_INSTANCE = vector_store.as_retriever(search_kwargs={"k": settings.RETRIEVER_K})
+    return _RETRIEVER_INSTANCE
 
 
 def is_file_already_indexed(file_hash: str) -> bool:

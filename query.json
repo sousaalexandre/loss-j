@@ -1,201 +1,251 @@
 [
   {
+    "id": 1,
     "query": "Quais são os requisitos de entrada de sargentos para a área funcional Operações Especiais, em termos de altura e escolaridade?",
     "expected": "Os requisitos para a área funcional Operações Especiais são ter o 12º ano, saber nadar e ter uma altura de 162cm (feminino e masculino), no caso de sargentos."
   },
   {
+    "id": 2,
     "query": "Qual é a unidade responsável pela formação inicial de Sargentos para todas as áreas funcionais e onde se localiza?",
     "expected": "A unidade responsável pela formação inicial de Sargentos para todas as áreas funcionais é a Escola de Sargentos do Exército (ESE), localizada em Caldas da Rainha."
   },
   {
+    "id": 3,
     "query": "Qual é a remuneração total de um General (GEN) em 2024?",
     "expected": "A remuneração total (TOTAL) de um General (GEN) é 6.558,53 €."
   },
   {
+    "id": 4,
     "query": "Quanto ganha, em termos de remuneração base (RB), um Cad Aluno do 1º Ano?",
     "expected": "A remuneração base (RB) de um Cad Aluno do 1º Ano é 203,51 €."
   },
   {
+    "id": 5,
     "query": "Qual é a remuneração total de um Sargento-Ajudante (SAJ), NR 23?",
     "expected": "A remuneração total para Sargento-Ajudante (SAJ) NR 23 é de 2.205,29 €."
   },
   {
+    "id": 6,
     "query": "Qual é o código de transação SAP mencionado para iniciar o processo de Alteração de Horário?",
     "expected": "O código de transação mencionado para a medida de Alteração de Horário é PA40."
   },
   {
+    "id": 7,
     "query": "Para que serve o Infotipo 2003 Substituições, de acordo com o manual?",
     "expected": "O Infotipo 2003 Substituições serve para realizar a substituição do horário de trabalho do colaborador. O registo de tolerâncias de ponto também deve ser efetuado neste infotipo."
   },
   {
+    "id": 8,
     "query": "Como posso aceder ao relatório Síntese de datas utilizando um código de transação?",
     "expected": "Pode aceder ao relatório Síntese de datas utilizando o código de transação S_PH0_48000450."
   },
   {
+    "id": 9,
     "query": "Qual a área geográfica de prestação de serviço preferencial para a área funcional Vigilância do Campo de Batalha?",
     "expected": "A área geográfica de prestação de serviço preferencial para Vigilância do Campo de Batalha é Braga, Estremoz e S. Margarida."
   },
   {
+    "id": 10,
     "query": "Quais são as condições essenciais de altura para a área funcional Vigilância do Campo de Batalha?",
     "expected": "As condições essenciais de altura para Vigilância do Campo de Batalha são 165cm - 180cm (feminino e masculino)."
   },
   {
+    "id": 11,
     "query": "Qual é a remuneração total de um Tenente-General (TGEN) com PR 2 em 2024?",
     "expected": "A remuneração total de um Tenente-General (TGEN) PR 2 é 5.496,86 €."
   },
   {
+    "id": 12,
     "query": "Quantas horas de trabalho suplementar por ano são permitidas, por trabalhador, segundo a lei geral?",
     "expected": "O limite de trabalho suplementar é de 150 horas de trabalho por ano, por trabalhador."
   },
   {
+    "id": 13,
     "query": "Qual o número máximo de horas de trabalho suplementar por dia normal de trabalho?",
     "expected": "O limite é de duas horas por dia normal de trabalho."
   },
   {
+    "id": 14,
     "query": "Qual o Infotipo utilizado para registar contingentes de presença no SIGRHV?",
     "expected": "O Infotipo utilizado para registar contingentes de presença é o IT 2007 - Contingentes de presença."
   },
   {
-  "query": "Qual é o Infotipo do SIGRHV utilizado para registar contingentes de presença?",
-  "expected": "O Infotipo utilizado para registar contingentes de presença é o IT 2007 - Contingentes de presença."
+    "id": 15,
+    "query": "Qual é o Infotipo do SIGRHV utilizado para registar contingentes de presença?",
+    "expected": "O Infotipo utilizado para registar contingentes de presença é o IT 2007 - Contingentes de presença."
   },
   {
+    "id": 16,
     "query": "Quais são as penas disciplinares aplicáveis aos militares dos quadros permanentes nas situações do ativo ou de reserva?",
     "expected": "As penas disciplinares aplicáveis aos militares dos quadros permanentes no ativo ou reserva são: repreensão, repreensão agravada, proibição de saída, suspensão de serviço, prisão disciplinar, reforma compulsiva e separação de serviço."
   },
   {
+    "id": 17,
     "query": "Qual a duração máxima da pena de proibição de saída?",
     "expected": "A pena de proibição de saída tem duração não superior a 20 dias."
   },
   {
+    "id": 18,
     "query": "O que consiste a pena de repreensão agravada para oficiais e sargentos?",
     "expected": "A repreensão agravada a oficiais e sargentos é dada na presença de outros oficiais ou sargentos, respetivamente de posto superior ou igual, mas, neste caso, mais antigos, da unidade, estabelecimento ou órgão a que o infrator pertencer."
   },
   {
+    "id": 19,
     "query": "Qual é o período de suspensão de serviço que pode ser aplicado como pena disciplinar?",
     "expected": "A pena de suspensão de serviço traduz-se no afastamento completo do serviço por um período que for fixado, entre cinco e 90 dias."
   },
   {
+    "id": 20,
     "query": "A que consiste a pena de separação de serviço?",
     "expected": "A separação de serviço consiste no afastamento definitivo das Forças Armadas, com perda da condição de militar, abate aos quadros permanentes e privação do uso de uniforme, distintivos, insígnias e medalhas militares, sem prejuízo do direito à pensão de reforma."
   },
   {
+    "id": 21,
     "query": "Qual o código de transação para atualizar dados mestre de pessoal no SIGRHV?",
     "expected": "O código de transação para atualizar dados mestre de pessoal é PA30."
   },
   {
+    "id": 22,
     "query": "Qual é o Infotipo utilizado para registar movimentos e mobilidades de pessoal?",
     "expected": "O Infotipo utilizado para registar movimentos e mobilidades é o IT 9011 - Movimentos e Mobilidades."
   },
   {
+    "id": 23,
     "query": "Que medida deve ser executada para registar uma reclassificação de um militar?",
     "expected": "A medida a executar é Reclassificação / Transferência de Quadro Especial, onde será registada a nova especialidade no IT0337 – Categoria / Posto."
   },
   {
+    "id": 24,
     "query": "Onde devem ser registados os documentos que constituem o Processo Individual do militar?",
     "expected": "Os documentos devem ser registados no IT Índice de documentos (IT 9009), que tem como objetivo o registo dos vários documentos que irão constituir o Processo Individual do militar."
   },
   {
+    "id": 25,
     "query": "Qual é a área geográfica de prestação de serviço preferencial para Operações Especiais de Sargentos?",
     "expected": "A área geográfica de prestação de serviço preferencial para Operações Especiais é Lamego."
   },
   {
+    "id": 26,
     "query": "Quantas especialidades existem para admissão de Praças em Regime de Contrato Especial (RCE)?",
     "expected": "Existem 14 especialidades para a admissão de Praças em Regime de Contrato Especial."
   },
   {
+    "id": 27,
     "query": "Qual a escolaridade mínima exigida para admissão como Praça em RCE?",
     "expected": "É necessário o Ensino Secundário completo (12º ano), ou habilitações legalmente equivalentes ao Nível 3 do Quadro Nacional de Qualificações."
   },
   {
+    "id": 28,
     "query": "Quantos turnos de incorporação CFO/CEFO/CFS estavam previstos para 2024 segundo o Plano de Formação Anual?",
     "expected": "Estavam previstos dois (02) turnos de incorporação CFO/CEFO/CFS no decorrer de 2024."
   },
   {
+    "id": 29,
     "query": "Qual era o efetivo máximo previsto para o 1º CFO/CEFO/CFS 2024?",
     "expected": "Estava previsto um efetivo máximo de 96 Oficiais e 135 Sargentos para o 1º CFO/CEFO/CFS 2024."
   },
   {
+    "id": 30,
     "query": "Qual é a remuneração base de um Major (MAJ) PR 3 em 2024?",
     "expected": "A remuneração base (RB) de um Major (MAJ) PR 3 é 2.620,23 €."
   },
   {
+    "id": 31,
     "query": "Qual a remuneração total de um 1º Sargento (1SAR) NR 20 em 2024?",
     "expected": "A remuneração total de um 1º Sargento (1SAR) NR 20 é 2.015,82 €."
   },
   {
+    "id": 32,
     "query": "Quantos anos de serviço efetivo são necessários para obter a medalha de ouro de comportamento exemplar?",
     "expected": "São necessários 30 anos de serviço efetivo, sem qualquer pena disciplinar ou criminal, para obter a medalha de ouro de comportamento exemplar."
   },
   {
+    "id": 33,
     "query": "Quantos anos de serviço são necessários para a medalha de prata de comportamento exemplar?",
     "expected": "São necessários 15 anos de serviço efetivo sem qualquer pena disciplinar ou criminal para a medalha de prata de comportamento exemplar."
   },
   {
+    "id": 34,
     "query": "Quais são as bases do Sistema de Avaliação do Mérito dos Militares das Forças Armadas (SAMMFA)?",
     "expected": "As bases do SAMMFA são: a avaliação individual (AI), a avaliação da formação (AF), a avaliação disciplinar (AD), a antiguidade no posto (AP) e a avaliação complementar (AC)."
   },
   {
+    "id": 35,
     "query": "Segundo a Lei Geral do Trabalho em Funções Públicas, qual é o limite máximo da sanção disciplinar de multa (por infração e por ano)?",
     "expected": "A sanção de multa não pode exceder o valor correspondente a seis remunerações base diárias por cada infração e um valor total correspondente à remuneração base de 90 dias por ano."
   },
   {
+    "id": 36,
     "query": "Como é calculada a antiguidade no posto para efeitos de promoção?",
     "expected": "Para a quantificação da antiguidade é atribuído a cada dia de serviço efetivo um valor de 0,005 valores, sendo a soma dos valores arredondada às centésimas."
   },
   {
+    "id": 37,
     "query": "Qual é o Infotipo SAP utilizado para registar o posto ou categoria profissional de militares?",
     "expected": "O Infotipo utilizado é o IT 0337 - Posto / Categoria Profissional."
   },
   {
+    "id": 38,
     "query": "Qual a finalidade do SAMMFA?",
     "expected": "O SAMMFA tem por finalidade determinar o mérito do militar, tendo em vista uma correta gestão dos recursos humanos, designadamente quanto a recrutamento e seleção, formação, promoção, progressão horizontal, desempenho de cargos e renovação contratual."
   },
   {
+    "id": 39,
     "query": "Qual é o limite máximo de dias que pode ser aplicado como sanção de suspensão para trabalhadores em funções públicas?",
     "expected": "A sanção de suspensão varia entre 20 e 90 dias por cada infração, num máximo de 240 dias por ano."
   },
   {
+    "id": 40,
     "query": "Quais são as sanções disciplinares aplicáveis aos trabalhadores em funções públicas?",
     "expected": "As sanções disciplinares aplicáveis são: repreensão escrita, multa, suspensão, despedimento disciplinar ou demissão."
   },
   {
+    "id": 41,
     "query": "Qual é o prazo de prescrição do procedimento disciplinar quando o trabalhador não foi notificado da decisão final?",
     "expected": "O procedimento disciplinar prescreve decorridos 18 meses, a contar da data em que foi instaurado, quando o trabalhador não tenha sido notificado da decisão final nesse prazo."
   },
   {
+    "id": 42,
     "query": "Qual o valor máximo que pode ter a sanção de multa para trabalhadores em funções públicas?",
     "expected": "A sanção de multa não pode exceder o valor correspondente a seis remunerações base diárias por cada infração e um valor total correspondente à remuneração base de 90 dias por ano."
   },
   {
+    "id": 43,
     "query": "Quais são as carreiras gerais no âmbito da função pública?",
     "expected": "São carreiras gerais: Técnico Superior, Assistente Técnico e Assistente Operacional."
   },
   {
+    "id": 44,
     "query": "Quantas posições remuneratórias mínimas tem a categoria inferior numa carreira pluricategorial?",
     "expected": "À categoria inferior corresponde um número mínimo de oito posições remuneratórias."
   },
   {
+    "id": 45,
     "query": "Quantos pontos são necessários para alterar obrigatoriamente de posição remuneratória na carreira de trabalhador em funções públicas?",
     "expected": "É necessário acumular 8 pontos nas avaliações do desempenho para haver alteração obrigatória para a posição remuneratória imediatamente seguinte."
   },
   {
+    "id": 46,
     "query": "Que valor corresponde a uma menção máxima em termos de pontos para progressão na carreira?",
     "expected": "Uma menção máxima corresponde a três pontos para efeitos de alteração de posicionamento remuneratório."
   },
   {
+    "id": 47,
     "query": "Qual o Infotipo utilizado para registar ausências no SIGRHV?",
     "expected": "O Infotipo utilizado para registar ausências é o IT 2001 - Ausências."
   },
   {
-  "query": "Em que Infotipo do SIGRHV devem ser registadas ausências, como por exemplo o descanso compensatório?",
-  "expected": "As ausências devem ser registadas no IT 2001 - Ausências."
+    "id": 48,
+    "query": "Em que Infotipo do SIGRHV devem ser registadas ausências, como por exemplo o descanso compensatório?",
+    "expected": "As ausências devem ser registadas no IT 2001 - Ausências."
   },
   {
+    "id": 49,
     "query": "Quais são os requisitos de altura para oficiais na área funcional Sapador de Engenharia?",
     "expected": "Os requisitos de altura para oficiais na área funcional Sapador de Engenharia são 156cm (feminino) e 160cm (masculino)."
   },
   {
+    "id": 50,
     "query": "Qual é a área geográfica de prestação de serviço preferencial para a área funcional Sapador de Engenharia?",
     "expected": "A área geográfica de prestação de serviço preferencial para Sapador de Engenharia é Espinho, S. Margarida e Tancos."
   }

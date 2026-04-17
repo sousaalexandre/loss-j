@@ -39,7 +39,7 @@ def get_llm_comparison_score(query: str, received: str, expected: str) -> float:
         - 80-94: Good response with minor omissions
         - 50-79: Reasonable response with notable omissions
         - 10-49: Poor response with inaccuracies or hallucinations
-        - 0: Completely incorrect or irrelevant response
+        - 0-9: Completely incorrect or irrelevant response
     """
     llm = get_llm()
     llm = llm.bind(temperature=0)
@@ -62,7 +62,7 @@ def get_llm_comparison_score(query: str, received: str, expected: str) -> float:
     * **80-94 (Boa):** A 'Resposta RAG' é factualmente precisa e responde bem à 'Query', mas pode omitir pequenos detalhes ou ser ligeiramente menos completa que a 'Resposta Esperada'.
     * **50-79 (Razoável):** A 'Resposta RAG' responde à 'Query', mas é visivelmente incompleta ou omite factos importantes presentes na 'Resposta Esperada'.
     * **10-49 (Fraca):** A 'Resposta RAG' contém imprecisões factuais, "alucinações" (informação que contradiz a 'Resposta Esperada') ou é maioritariamente irrelevante para a 'Query'.
-    * **0 (Terrível):** Completamente errada ou irrelevante.
+    * **0-9 (Terrível):** Completamente errada ou irrelevante.
 
     Foca-te apenas na precisão factual e na completude. Não penalizes por diferenças de estilo ou formulação, *desde que* o significado central seja o mesmo.
 
@@ -110,47 +110,65 @@ def load_queries_from_json(json_file_path: str) -> list:
 
 
     
+from concurrent.futures import ThreadPoolExecutor
+
 def run_tests(queries: list) -> pd.DataFrame:
-    """Execute RAG evaluation tests on a list of queries.
+    """Execute RAG evaluation tests on a list of queries in parallel.
     
     Processes each query through the RAG system, compares the received response
     with the expected response, and generates semantic accuracy scores.
-    Handles errors gracefully by recording error messages for failed queries.
+    Uses multi-threading to speed up the process.
     
     Args:
         queries: A list of dictionaries, each with 'query' and 'expected' keys.
     
     Returns:
-        A pandas DataFrame with columns:
-        - Query: The original query string
-        - Received Response: The RAG system's response
-        - Expected Response: The reference expected response
-        - Meaning Acc (%): The semantic accuracy score (0-100)
+        A pandas DataFrame with results.
     """
-    results = []
-    for item in queries:
+    
+    def process_single_query(item, idx):
+        query_id = item.get('id', idx)
         query = item['query']
         expected = item['expected']
 
         try:
-            received = query_handler(query)["response"]
+            # 1. Get RAG response
+            received_data = query_handler(query)
+            received = received_data["response"]
             received = received.replace('\n', ' ').replace('\r', ' ')
+            
+            # 2. Get LLM Score
+            score = get_llm_comparison_score(
+                query=query,
+                received=received,
+                expected=expected
+            )
         except Exception as e:
             received = f"Error: {str(e)}"
+            score = 0.0
 
-        score = get_llm_comparison_score(
-            query=query,
-            received=received,
-            expected=expected
-        )
-
-        results.append({
+        return {
+            'Query ID': query_id,
             'Query': query,
             'Received Response': received,
             'Expected Response': expected,
             'Meaning Acc (%)': score
-        })
-    return pd.DataFrame(results)
+        }
+
+    results = []
+    # Use 10 workers to parallelize the process
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        # Pass both item and index to maintain the original ID logic
+        futures = [executor.submit(process_single_query, item, i) for i, item in enumerate(queries, start=1)]
+        for future in futures:
+            results.append(future.result())
+
+    # Keep results consistently ordered by query id.
+    results_df = pd.DataFrame(results)
+    if 'Query ID' in results_df.columns:
+        results_df['Query ID'] = pd.to_numeric(results_df['Query ID'], errors='coerce')
+        results_df = results_df.sort_values(by='Query ID', ascending=True, na_position='last')
+    return results_df
 
 def main(json_file_path: str) -> None:
     """Execute the complete RAG evaluation pipeline and save results.
@@ -165,6 +183,8 @@ def main(json_file_path: str) -> None:
     """
     queries = load_queries_from_json(json_file_path)
     results_df = run_tests(queries)
+    if 'Query ID' in results_df.columns:
+        results_df = results_df.sort_values(by='Query ID', ascending=True, na_position='last')
     
     os.makedirs('outputs', exist_ok=True)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
