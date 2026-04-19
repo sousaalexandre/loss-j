@@ -75,6 +75,13 @@ def get_metric_emoji(val):
     else:
         return '🔴'
 
+def detect_query_id_column(df: pd.DataFrame) -> str | None:
+    """Detect the query identifier column name in a results dataframe."""
+    for candidate in ['Query ID', 'id', 'ID', 'query_id', 'QueryId']:
+        if candidate in df.columns:
+            return candidate
+    return None
+
 outputs_dir = 'outputs/results/'
 if os.path.exists(outputs_dir):
     csv_files = [f for f in os.listdir(outputs_dir) if f.endswith('.csv')]
@@ -85,7 +92,15 @@ if os.path.exists(outputs_dir):
         
         df = pd.read_csv(file_path)
         
-        if all(col in df.columns for col in ['Query', 'Received Response', 'Expected Response', 'Meaning Acc (%)']):
+        if all(col in df.columns for col in ['Query', 'Expected Response', 'Received Response', 'Meaning Acc (%)']):
+            query_id_col = detect_query_id_column(df)
+            if query_id_col:
+                df[query_id_col] = pd.to_numeric(df[query_id_col], errors='coerce')
+                df = df.sort_values(by=query_id_col, ascending=True, na_position='last')
+                if query_id_col != 'Query ID':
+                    df = df.rename(columns={query_id_col: 'Query ID'})
+                    query_id_col = 'Query ID'
+
             # metrics
             acc_values = pd.to_numeric(df['Meaning Acc (%)'], errors='coerce').dropna()
             
@@ -145,7 +160,11 @@ if os.path.exists(outputs_dir):
             
             st.markdown("---")
             st.subheader(f"Resultados de {selected_file}")
-            display_df = df[['Query', 'Received Response', 'Expected Response', 'Meaning Acc (%)']]
+            display_columns = ['Query', 'Expected Response', 'Received Response', 'Meaning Acc (%)']
+            if 'Query ID' in df.columns:
+                display_columns = ['Query ID'] + display_columns
+
+            display_df = df[display_columns]
             display_df = display_df.replace('\n', '<br>', regex=True)
             display_df['Meaning Acc (%)'] = display_df['Meaning Acc (%)'].apply(color_acc)
             table_html = display_df.to_html(index=False, escape=False)
