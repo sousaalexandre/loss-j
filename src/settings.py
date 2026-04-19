@@ -12,7 +12,7 @@ load_dotenv()
 # "pdfloader": PDF → Indexing directly (faster, no cleaning)
 # "docling": PDF → Markdown via Docling (ETL) → Indexing
 # "docling-images": PDF → Markdown with Images descriptions via Docling (ETL) → Indexing with image support
-LOADER_TYPE = "docling"
+LOADER_TYPE = "pdfloader"
 
 
 # ============================================================================
@@ -42,7 +42,7 @@ HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
 # "recursive": Basic recursive text splitter
 # "markdown_recursive": Markdown-aware splitter (preserves structure)
 # "hierarchical": Hierarchical splitter (sections, subsections, etc.)
-SPLITTING_TYPE = "hierarchical"
+SPLITTING_TYPE = "recursive"
 
 # Chunk parameters
 CHUNK_SIZE = 1000          # Characters per chunk
@@ -66,4 +66,4 @@ VLM_MODEL_NAME = "google/gemma-3-27b-it"
 VECTOR_DB_PATH = "vectorstore_db"
 
 # Number of documents to retrieve for RAG
-RETRIEVER_K = 20
+RETRIEVER_K = 50
