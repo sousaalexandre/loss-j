@@ -12,7 +12,7 @@ load_dotenv()
 # "pdfloader": PDF → Indexing directly (faster, no cleaning)
 # "docling": PDF → Markdown via Docling (ETL) → Indexing
 # "docling-images": PDF → Markdown with Images descriptions via Docling (ETL) → Indexing with image support
-LOADER_TYPE = "pdfloader"
+LOADER_TYPE = "docling"
 
 
 # ============================================================================
@@ -42,7 +42,7 @@ HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
 # "recursive": Basic recursive text splitter
 # "markdown_recursive": Markdown-aware splitter (preserves structure)
 # "hierarchical": Hierarchical splitter (sections, subsections, etc.)
-SPLITTING_TYPE = "recursive"
+SPLITTING_TYPE = "hierarchical"
 
 # Chunk parameters
 CHUNK_SIZE = 1000          # Characters per chunk
