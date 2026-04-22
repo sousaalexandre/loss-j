@@ -3,6 +3,8 @@ from src.api.query_handler import query_handler
 import os
 import json
 from pathlib import Path
+from src import settings
+import requests
 
 def get_document_title(source_path: str) -> str:
     """
@@ -41,8 +43,46 @@ def main():
     including message history, user input handling, and response generation with
     document sources.
     """
-    st.set_page_config(layout="wide", initial_sidebar_state="expanded")
-    st.set_page_config(page_title="LOSS-J", page_icon="💬")
+    st.set_page_config(
+        page_title="LOSS-J",
+        page_icon="💬",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+
+    # Model Status Bar
+    llm_name = settings.LOCAL_LLM_MODEL_NAME if getattr(settings, "USE_LOCAL_MODELS", False) else settings.LLM_MODEL_NAME
+    emb_name = settings.LOCAL_EMBEDDING_MODEL_NAME if getattr(settings, "USE_LOCAL_MODELS", False) else settings.EMBEDDING_MODEL_NAME
+    
+    connected = False
+    if getattr(settings, "USE_LOCAL_MODELS", False):
+        try:
+            # Check if local API is reachable
+            url = settings.LOCAL_API_BASE_URL.rstrip('/') + "/models"
+            response = requests.get(url, timeout=1)
+            connected = response.status_code == 200
+        except:
+            connected = False
+    else:
+        connected = os.getenv("OPENAI_API_KEY") is not None
+
+    status_text = "CONNECTED" if connected else "DISCONNECTED"
+    status_color = "#28a745" if connected else "#dc3545"
+    
+    st.markdown(
+        f"""
+        <div style="background-color: rgba(128, 128, 128, 0.1); padding: 4px 12px; border-radius: 4px; font-family: monospace; font-size: 11px; display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+            <span style="white-space: nowrap; color: #888;">LLM: <span style="color: inherit; font-weight: 600;">{llm_name}</span></span>
+            <span style="white-space: nowrap; color: #888;">EMBEDDING: <span style="color: inherit; font-weight: 600;">{emb_name}</span></span>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 6px; height: 6px; background-color: {status_color}; border-radius: 50%;"></span>
+                <span style="color: {status_color}; font-weight: 700; font-size: 9px; letter-spacing: 0.4px;">{status_text}</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
     st.title("LOSS-J RAG (Beta)")
 
     if "messages" not in st.session_state:
