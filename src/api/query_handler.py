@@ -103,7 +103,7 @@ def query_handler(prompt: str) -> dict:
         log(
             f"Document {i+1} (from {file_name}):\n"
             f"Metadata: {doc.metadata}\n"
-            f"Content: {doc.page_content[:200]}...\n",
+            f"Content: {doc.page_content[:1000]}...\n",
             level="info"
         )
 
