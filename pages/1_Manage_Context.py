@@ -2,41 +2,43 @@ import streamlit as st
 import base64
 import json
 from src.pipelines.controller import run_ingestion
-from src.services.vector_db import get_database_summary
+from src.services.vector_db import get_database_summary, remove_document
 from pathlib import Path
 
 def get_document_title(source_filename: str) -> str:
     """
-    Get the document title from _catalog.json in landing zone.
+    Get the document title from _catalog.json in gold or landing zone.
     Falls back to original_filename or hash name if not found.
     """
     try:
         # Extract hash from source filename (e.g., "hash.md" or "hash.pdf")
         source_file = Path(source_filename)
-        hash_name = source_file.stem  # Get filename without extension
-        
-        # Look for catalog in landing zone
-        landing_zone = Path("data_lakehouse/01_bronze")
-        catalog_file = landing_zone / "_catalog.json"
-        
-        if catalog_file.exists():
-            with open(catalog_file, 'r', encoding='utf-8') as f:
-                catalog = json.load(f)
-                # Check if hash exists in catalog
-                if hash_name in catalog:
-                    metadata = catalog[hash_name]
-                    # Return title if available, otherwise original filename
-                    if metadata.get("title"):
-                        return metadata["title"]
-                    if metadata.get("original_filename"):
-                        return metadata["original_filename"].replace(".pdf", "")
+        hash_name = source_file.stem.split('_')[0]  # Get base hash part
+
+        # Look for catalog in gold and landing zones
+        catalog_files = [
+            Path("data_lakehouse/03_gold/_catalog.json"),
+            Path("data_lakehouse/01_bronze/_catalog.json")
+        ]
+
+        for catalog_file in catalog_files:
+            if catalog_file.exists():
+                with open(catalog_file, 'r', encoding='utf-8') as f:
+                    catalog = json.load(f)
+                    # Check if hash exists in catalog
+                    if hash_name in catalog:
+                        metadata = catalog[hash_name]
+                        # Return title if available, otherwise original filename
+                        if metadata.get("title"):
+                            return metadata["title"]
+                        if metadata.get("original_filename"):
+                            return metadata["original_filename"].replace(".pdf", "")
     except Exception:
         # Silently fall back if any error
         pass
-    
+
     # Fall back to hash or filename
     return Path(source_filename).stem
-
 # Set page config FIRST
 st.set_page_config(layout="wide", initial_sidebar_state="expanded")
 
@@ -133,53 +135,25 @@ st.markdown("""
 # --- Helper Function for PDF Display ---
 def display_pdf(uploaded_file):
     """
-    Display PDF pages one at a time with navigation buttons.
+    Display PDF using an iframe for a clear, full-document preview.
     """
     try:
-        from pdf2image import convert_from_bytes
-        
+        import base64
         # Read file as bytes
         bytes_data = uploaded_file.getvalue()
-        
-        # Convert first 5 pages to images
-        images = convert_from_bytes(bytes_data, first_page=1, last_page=5)
-        
-        # Initialize page index in session state
-        page_key = f"pdf_page_{uploaded_file.name}"
-        if page_key not in st.session_state:
-            st.session_state[page_key] = 0
-        
-        current_page = st.session_state[page_key]
-        
-        # Display current page
-        st.image(images[current_page], caption=f"Página {current_page + 1}/{len(images)}", width=500)
-        
-        # Navigation buttons
-        col1, col2, col3 = st.columns([1, 2, 1])
-        
-        with col1:
-            if current_page > 0:
-                if st.button("⬅️ Anterior", key=f"prev_{uploaded_file.name}"):
-                    st.session_state[page_key] -= 1
-                    st.rerun()
-            else:
-                st.empty()
-        
-        with col2:
-            st.empty()
-        
-        with col3:
-            if current_page < len(images) - 1:
-                if st.button("Próxima ➡️", key=f"next_{uploaded_file.name}"):
-                    st.session_state[page_key] += 1
-                    st.rerun()
-            else:
-                st.empty()
-        
+
+        # Base64 encode the bytes
+        base64_pdf = base64.b64encode(bytes_data).decode('utf-8')
+
+        # Embed PDF in HTML
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
+
+        # Display the HTML
+        st.markdown(pdf_display, unsafe_allow_html=True)
+
     except Exception as e:
         st.warning(f"⚠️ Não consegui pré-visualizar este PDF")
-        st.caption(f"Detalhes: {str(e)[:100]}")
-# ---------------------------------------
+        st.caption(f"Detalhes: {str(e)[:100]}")# ---------------------------------------
 
 st.title("Gerir Base de Conhecimento 🗂️")
 st.markdown("Adicione novos documentos à sua base de conhecimento e visualize seu estado atual.")
@@ -481,7 +455,31 @@ else:
 
 st.divider()
 
-# (The rest of your viewing logic remains the same)
+
+@st.dialog("Visualizar Documento", width="large")
+def visualize_document(pdf_path: Path):
+    try:
+        import base64
+        with open(pdf_path, "rb") as f:
+            bytes_data = f.read()
+        base64_pdf = base64.b64encode(bytes_data).decode('utf-8')
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+        st.markdown(pdf_display, unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Erro ao abrir documento: {e}")
+
+@st.dialog("Confirmar Remoção")
+def confirm_removal(name: str, title: str):
+    st.warning(f"Tem a certeza que pretende remover o documento **{title}**?\n\n⚠️ Esta ação **não é reversível** e irá apagar permanentemente o ficheiro do sistema.")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Sim, Remover", type="primary", use_container_width=True):
+            remove_document(name)
+            st.rerun()
+    with col2:
+        if st.button("Cancelar", use_container_width=True):
+            st.rerun()
+
 st.header("Estado da Base de Conhecimento 📊")
 summary = get_database_summary()
 if summary:
@@ -499,6 +497,19 @@ if summary:
         else:
             for name, count in file_details.items():
                 file_title = get_document_title(name)
-                st.markdown(f"- **{file_title}.pdf** (*{count} chunks*)")
+                col_text, col_btn_vis, col_btn_rem = st.columns([4, 1, 1])
+                with col_text:
+                    st.markdown(f"- **{file_title}** (*{count} chunks*)")
+                with col_btn_vis:
+                    if st.button("Visualizar", key=f"vis_{name}"):
+                        hash_name = Path(name).stem.split('_')[0]
+                        pdf_path = Path(f"data_lakehouse/01_bronze/{hash_name}.pdf")
+                        if pdf_path.exists():
+                            visualize_document(pdf_path)
+                        else:
+                            st.error("PDF não encontrado.")
+                with col_btn_rem:
+                    if st.button("Remover", key=f"rem_{name}"):
+                        confirm_removal(name, file_title)
 else:
     st.warning("Base de conhecimento não encontrada. Por favor, carregue o seu primeiro documento.")

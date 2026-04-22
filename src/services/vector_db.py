@@ -145,10 +145,10 @@ def get_database_summary():
 
     metadatas = data.get('metadatas', [])
     total_chunks = len(metadatas)
-    
+
     sources = [meta.get('source', 'Unknown Source') for meta in metadatas]
     source_counts = Counter(sources)
-    
+
     unique_files = list(source_counts.keys())
     num_files = len(unique_files)
 
@@ -159,3 +159,67 @@ def get_database_summary():
         "num_files": num_files,
         "file_details": file_details
     }
+
+
+def remove_document(file_name_or_hash: str) -> bool:
+    """
+    Remove a document from the vector store and the data lakehouse.
+    """
+    from pathlib import Path
+    import json
+    import shutil
+
+    hash_name = Path(file_name_or_hash).stem.split('_')[0]
+
+    log(f"Removing document with hash {hash_name}...", level="info")
+
+    # 1. Remove from Vector Store
+    if os.path.exists(settings.VECTOR_DB_PATH):
+        vector_store = Chroma(persist_directory=settings.VECTOR_DB_PATH)
+        data = vector_store.get()
+        if data and data.get('ids'):
+            ids_to_delete = []
+            for idx, meta in zip(data['ids'], data.get('metadatas', [])):
+                if meta.get('file_hash') == hash_name or hash_name in meta.get('source', ''):
+                    ids_to_delete.append(idx)
+
+            if ids_to_delete:
+                vector_store.delete(ids_to_delete)
+                log(f"Deleted {len(ids_to_delete)} chunks from vector store.", level="info")
+
+    # 2. Remove from Bronze Layer
+    bronze_dir = Path("data_lakehouse/01_bronze")
+    if bronze_dir.exists():
+        pdf_file = bronze_dir / f"{hash_name}.pdf"
+        if pdf_file.exists():
+            pdf_file.unlink()
+
+        catalog_file = bronze_dir / "_catalog.json"
+        if catalog_file.exists():
+            with open(catalog_file, 'r', encoding='utf-8') as f:
+                catalog = json.load(f)
+            if hash_name in catalog:
+                del catalog[hash_name]
+                with open(catalog_file, 'w', encoding='utf-8') as f:
+                    json.dump(catalog, f, indent=2, ensure_ascii=False)
+
+    # 3. Remove from Gold Layer
+    gold_dir = Path("data_lakehouse/03_gold")
+    if gold_dir.exists():
+        gold_file_dir = gold_dir / hash_name
+        if gold_file_dir.exists() and gold_file_dir.is_dir():
+            shutil.rmtree(gold_file_dir)
+
+        for md_file in gold_dir.glob(f"{hash_name}_*.md"):
+            md_file.unlink()
+
+        gold_catalog_file = gold_dir / "_catalog.json"
+        if gold_catalog_file.exists():
+            with open(gold_catalog_file, 'r', encoding='utf-8') as f:
+                catalog = json.load(f)
+            if hash_name in catalog:
+                del catalog[hash_name]
+                with open(gold_catalog_file, 'w', encoding='utf-8') as f:
+                    json.dump(catalog, f, indent=2, ensure_ascii=False)
+
+    return True
