@@ -16,7 +16,8 @@ def get_embedding_model(force_cloud: bool = False) -> Embeddings:
             base_url=getattr(settings, "LOCAL_API_BASE_URL", "http://127.0.0.1:1234/v1"),
             model=settings.LOCAL_EMBEDDING_MODEL_NAME,
             api_key="lm-studio",    # dummy
-            check_embedding_ctx_length=False
+            check_embedding_ctx_length=False,
+            chunk_size=32
         )
     else:
         embeddings = OpenAIEmbeddings(
