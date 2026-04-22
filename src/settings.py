@@ -53,9 +53,20 @@ CHUNK_OVERLAP = 200        # Characters of overlap between chunks
 # LLM & EMBEDDING MODELS
 # ============================================================================
 
+# Cloud Models (Default)
 LLM_MODEL_NAME = "gpt-4o-mini"
 EMBEDDING_MODEL_NAME = "text-embedding-3-small"
+
+
+# Image description extraction model (local)
 VLM_MODEL_NAME = "google/gemma-3-27b-it"
+
+
+# Local Models (LM Studio)
+USE_LOCAL_MODELS = True
+LOCAL_API_BASE_URL = "http://127.0.0.1:1234/v1"
+LOCAL_LLM_MODEL_NAME = "qwen/qwen3-30b-a3b-2507"
+LOCAL_EMBEDDING_MODEL_NAME = "text-embedding-qwen3-embedding-8b"
 
 
 # ============================================================================
