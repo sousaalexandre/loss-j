@@ -111,15 +111,42 @@ class RAGIndexingPipeline:
                 log(f"     Split into {len(chunks)} chunks", level="info")
                 total_chunks += len(chunks)
                 
-                # Get embeddings and store
-                embeddings = embedder.get_embedding_model()
-                store(chunks, embeddings)
+                # Get embeddings and store with robust retry logic
+                import time
+                max_retries = 5
+                retry_delay = 3 # seconds
                 
-                log(f"     ✓ Successfully indexed", level="info")
-                indexed_count += 1
+                for attempt in range(max_retries):
+                    try:
+                        # On retry, try to reset the connection
+                        reset_conn = attempt > 0
+                        embeddings = embedder.get_embedding_model(reset=reset_conn)
+                        store(chunks, embeddings, reset=reset_conn)
+                        log(f"     ✓ Successfully indexed", level="info")
+                        indexed_count += 1
+                        break # Success
+                    except Exception as e:
+                        err_msg = str(e)
+                        is_retryable = any(msg in err_msg for msg in [
+                            "No models loaded", 
+                            "Tailscale", 
+                            "WebSocket connection closed", 
+                            "connection", 
+                            "timeout",
+                            "reset"
+                        ])
+                        
+                        if is_retryable and attempt < max_retries - 1:
+                            wait_time = retry_delay * (2 ** attempt)
+                            log(f"     ! Transient error: {err_msg}. Retrying in {wait_time}s... (Attempt {attempt + 1}/{max_retries})", level="warning")
+                            time.sleep(wait_time)
+                        else:
+                            log(f"     ✗ Error indexing {file_name}: {e}", level="error")
+                            failed_count += 1
+                            break
                 
             except Exception as e:
-                log(f"     ✗ Error indexing {file_name}: {e}", level="error")
+                log(f"     ✗ Unexpected error indexing {file_name}: {e}", level="error")
                 failed_count += 1
         
         log(f"RAG Indexing Pipeline completed ({source_type})", level="info")

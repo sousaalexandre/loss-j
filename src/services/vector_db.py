@@ -8,44 +8,48 @@ from src.logger import log
 from collections import Counter
 
 
-def get_vector_store() -> Chroma:
+_VECTOR_STORE_INSTANCE = None
+
+def get_vector_store(reset: bool = False) -> Chroma:
     """
-    Connects to the ChromaDB vector store. Creates it if it doesn't exist.
+    Connects to the ChromaDB vector store using a singleton pattern.
+    Creates it if it doesn't exist.
+
+    Args:
+        reset (bool): If True, clears the existing instance and creates a new one.
 
     Returns:
         Chroma: An instance of the Chroma vector store.
     """
-    vector_store = Chroma(
+    global _VECTOR_STORE_INSTANCE
+    
+    if reset:
+        _VECTOR_STORE_INSTANCE = None
+        
+    if _VECTOR_STORE_INSTANCE is not None:
+        return _VECTOR_STORE_INSTANCE
+        
+    _VECTOR_STORE_INSTANCE = Chroma(
         persist_directory=settings.VECTOR_DB_PATH,
-        embedding_function=get_embedding_model()
+        embedding_function=get_embedding_model(reset=reset)
     )
 
-    return vector_store
+    return _VECTOR_STORE_INSTANCE
 
 
-def store(chunks: list, embeddings) -> None:
+def store(chunks: list, embeddings, reset: bool = False) -> None:
     """
     Store document chunks in the vector database.
     
     Args:
         chunks: List of document chunks to store
         embeddings: Embedding model to use
+        reset: Whether to reset the vector store connection
     """
     log("Storing document chunks in vector store...", level="info")
     
-    # Check if database exists
-    if os.path.exists(settings.VECTOR_DB_PATH):
-        vector_store = Chroma(
-            persist_directory=settings.VECTOR_DB_PATH,
-            embedding_function=embeddings
-        )
-        vector_store.add_documents(chunks)
-    else:
-        Chroma.from_documents(
-            documents=chunks,
-            embedding=embeddings,
-            persist_directory=settings.VECTOR_DB_PATH
-        )
+    vector_store = get_vector_store(reset=reset)
+    vector_store.add_documents(chunks)
 
 
 def check_file_exists_vector_store(file_path: str) -> bool:
