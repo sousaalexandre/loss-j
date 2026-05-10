@@ -41,7 +41,7 @@ def get_llm_comparison_score(query: str, received: str, expected: str) -> float:
         - 10-49: Poor response with inaccuracies or hallucinations
         - 0-9: Completely incorrect or irrelevant response
     """
-    llm = get_llm()
+    llm = get_llm(force_cloud=True)
     llm = llm.bind(temperature=0)
 
     llm_with_schema = llm.with_structured_output(AccuracyScore)
