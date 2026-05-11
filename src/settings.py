@@ -63,7 +63,7 @@ VLM_MODEL_NAME = "google/gemma-3-27b-it"
 
 
 # Local Models (LM Studio)
-USE_LOCAL_MODELS = True
+USE_LOCAL_MODELS = False
 LOCAL_API_BASE_URL = "http://127.0.0.1:1234/v1"
 LOCAL_LLM_MODEL_NAME = "qwen/qwen3-30b-a3b-2507"
 LOCAL_EMBEDDING_MODEL_NAME = "text-embedding-qwen3-embedding-8b"
