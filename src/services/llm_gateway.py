@@ -20,7 +20,7 @@ def with_retry(max_retries=3, initial_delay=2, backoff_factor=2):
                     # List of common transient error patterns
                     error_msg = str(e).lower()
                     is_transient = any(term in error_msg for term in [
-                        "timeout", "timed out", "keepalive", "connection", "closed", "400", "500", "502", "503", "504"
+                        "timeout", "timed out", "keepalive", "connection", "closed", "tenant", "400", "500", "502", "503", "504"
                     ])
 
                     if not is_transient or attempt == max_retries:

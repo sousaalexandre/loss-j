@@ -82,24 +82,28 @@ def get_retriever() -> VectorStoreRetriever:
     """
     global _RETRIEVER_INSTANCE
     
-    if _RETRIEVER_INSTANCE is not None:
-        return _RETRIEVER_INSTANCE
+    with _LOCK:
+        if _RETRIEVER_INSTANCE is not None:
+            return _RETRIEVER_INSTANCE
 
-    if not os.path.exists(settings.VECTOR_DB_PATH):
-        raise FileNotFoundError(
-            f"Vector database not found at path: {settings.VECTOR_DB_PATH}. "
-            "Please run the ingestion script first."
+        if not os.path.exists(settings.VECTOR_DB_PATH):
+            raise FileNotFoundError(
+                f"Vector database not found at path: {settings.VECTOR_DB_PATH}. "
+                "Please run the ingestion script first."
+            )
+
+        embedding_function = get_embedding_model()
+
+        # Use the shared client initialization logic to avoid locked DB issues
+        _CHROMA_CLIENT = chromadb.PersistentClient(path=settings.VECTOR_DB_PATH)
+
+        vector_store = Chroma(
+            client=_CHROMA_CLIENT,
+            embedding_function=embedding_function
         )
 
-    embedding_function = get_embedding_model()
-
-    vector_store = Chroma(
-        persist_directory=settings.VECTOR_DB_PATH,
-        embedding_function=embedding_function
-    )
-
-    _RETRIEVER_INSTANCE = vector_store.as_retriever(search_kwargs={"k": settings.RETRIEVER_K})
-    return _RETRIEVER_INSTANCE
+        _RETRIEVER_INSTANCE = vector_store.as_retriever(search_kwargs={"k": settings.RETRIEVER_K})
+        return _RETRIEVER_INSTANCE
 
 
 def is_file_already_indexed(file_hash: str) -> bool:
