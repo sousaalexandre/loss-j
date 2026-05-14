@@ -4,7 +4,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from src.services.vector_db import get_retriever
-from src.services.llm_gateway import get_llm
+from src.services.llm_gateway import get_llm, with_retry
 from src.logger import log
 import os
 
@@ -93,19 +93,21 @@ def query_handler(prompt: str) -> dict:
     Processes a user query by retrieving relevant context and generating a response.
     """
     retriever = get_retriever()
-    raw_docs = retriever.invoke(prompt)
+    
+    # Wrap retriever invocation to catch embedding generation timeouts
+    raw_docs = with_retry()(retriever.invoke)(prompt)
 
-    log(f"Retrieved {len(raw_docs)} documents for prompt: '{prompt}'", level="info")
+    #log(f"Retrieved {len(raw_docs)} documents for prompt: '{prompt}'", level="info")
 
     reranked_docs = _rerank_docs(raw_docs, prompt)
-    for i, doc in enumerate(reranked_docs):
-        file_name = os.path.basename(doc.metadata.get('source', 'Unknown Source'))
-        log(
-            f"Document {i+1} (from {file_name}):\n"
-            f"Metadata: {doc.metadata}\n"
-            f"Content: {doc.page_content[:1000]}...\n",
-            level="info"
-        )
+    # for i, doc in enumerate(reranked_docs):
+    #     file_name = os.path.basename(doc.metadata.get('source', 'Unknown Source'))
+    #     log(
+    #         f"Document {i+1} (from {file_name}):\n"
+    #         f"Metadata: {doc.metadata}\n"
+    #         f"Content: {doc.page_content[:1000]}...\n",
+    #         level="info"
+    #     )
 
     context = _build_context(reranked_docs)
 
@@ -132,6 +134,7 @@ def query_handler(prompt: str) -> dict:
         | StrOutputParser()
     )
 
-    response = rag_chain.invoke({"context": context, "question": prompt})
+    # Apply retry wrapper to the chain invocation
+    response = with_retry()(rag_chain.invoke)({"context": context, "question": prompt})
 
     return {"response": response, "documents": reranked_docs}
