@@ -1,4 +1,6 @@
 import os
+import threading
+import chromadb.api
 from langchain_chroma import Chroma
 from langchain_core.vectorstores import VectorStoreRetriever
 from src.services.embedder import get_embedding_model
@@ -7,34 +9,35 @@ from src.utils import generate_file_hash
 from src.logger import log
 from collections import Counter
 
+chromadb.api.client.SharedSystemClient.clear_system_cache()
 
+# Global instances and a lock for thread-safety
 _VECTOR_STORE_INSTANCE = None
+_CHROMA_CLIENT = None
+_LOCK = threading.Lock()
 
 def get_vector_store(reset: bool = False) -> Chroma:
-    """
-    Connects to the ChromaDB vector store using a singleton pattern.
-    Creates it if it doesn't exist.
-
-    Args:
-        reset (bool): If True, clears the existing instance and creates a new one.
-
-    Returns:
-        Chroma: An instance of the Chroma vector store.
-    """
-    global _VECTOR_STORE_INSTANCE
+    global _VECTOR_STORE_INSTANCE, _CHROMA_CLIENT
     
-    if reset:
-        _VECTOR_STORE_INSTANCE = None
+    with _LOCK:
+        if reset:
+            _VECTOR_STORE_INSTANCE = None
+            _CHROMA_CLIENT = None
+            
+        if _VECTOR_STORE_INSTANCE is not None:
+            return _VECTOR_STORE_INSTANCE
+            
+        log("Initializing Vector Store Singleton...", level="info")
         
-    if _VECTOR_STORE_INSTANCE is not None:
-        return _VECTOR_STORE_INSTANCE
+        # Use a PersistentClient specifically to manage the connection better
+        _CHROMA_CLIENT = chromadb.PersistentClient(path=settings.VECTOR_DB_PATH)
         
-    _VECTOR_STORE_INSTANCE = Chroma(
-        persist_directory=settings.VECTOR_DB_PATH,
-        embedding_function=get_embedding_model(reset=reset)
-    )
+        _VECTOR_STORE_INSTANCE = Chroma(
+            client=_CHROMA_CLIENT,
+            embedding_function=get_embedding_model(reset=reset)
+        )
 
-    return _VECTOR_STORE_INSTANCE
+        return _VECTOR_STORE_INSTANCE
 
 
 def store(chunks: list, embeddings, reset: bool = False) -> None:
@@ -112,7 +115,7 @@ def is_file_already_indexed(file_hash: str) -> bool:
     if not os.path.exists(settings.VECTOR_DB_PATH):
         return False
     
-    vector_store = Chroma(persist_directory=settings.VECTOR_DB_PATH)
+    vector_store = get_vector_store()
     data = vector_store.get()
     
     if not data or not data.get('ids'):
@@ -137,7 +140,7 @@ def get_database_summary():
     if not os.path.exists(settings.VECTOR_DB_PATH):
         return None
 
-    vector_store = Chroma(persist_directory=settings.VECTOR_DB_PATH)
+    vector_store = get_vector_store()
     data = vector_store.get()
 
     if not data or not data.get('ids'):
