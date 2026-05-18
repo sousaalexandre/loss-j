@@ -42,7 +42,7 @@ HIERARCHY_REBUILDING_MODE = "font"  # "font" or "llm"
 # "recursive": Basic recursive text splitter
 # "markdown_recursive": Markdown-aware splitter (preserves structure)
 # "hierarchical": Hierarchical splitter (sections, subsections, etc.)
-SPLITTING_TYPE = "markdown_recursive"
+SPLITTING_TYPE = "hierarchical"
 
 # Chunk parameters
 CHUNK_SIZE = 1000          # Characters per chunk
@@ -64,9 +64,9 @@ VLM_MODEL_NAME = "google/gemma-3-27b-it"
 
 # Local Models (LM Studio)
 USE_LOCAL_MODELS = False
-LOCAL_API_BASE_URL = "http://127.0.0.1:1234/v1"
-LOCAL_LLM_MODEL_NAME = "qwen/qwen3-30b-a3b-2507"
-LOCAL_EMBEDDING_MODEL_NAME = "text-embedding-qwen3-embedding-8b"
+LOCAL_API_BASE_URL = "http://127.0.0.1:1234/v1"  # for docker, use "http://host.docker.internal:1234/v1"
+LOCAL_LLM_MODEL_NAME = "gemma-4-31b-it"
+LOCAL_EMBEDDING_MODEL_NAME = "text-embedding-bge-m3"
 
 
 # ============================================================================
@@ -77,4 +77,4 @@ LOCAL_EMBEDDING_MODEL_NAME = "text-embedding-qwen3-embedding-8b"
 VECTOR_DB_PATH = "vectorstore_db"
 
 # Number of documents to retrieve for RAG
-RETRIEVER_K = 200
+RETRIEVER_K = 50

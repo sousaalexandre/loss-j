@@ -1,10 +1,12 @@
 import json
 import pandas as pd
 import os
+import math
 from datetime import datetime
 from src.api.query_handler import query_handler
-from src.services.llm_gateway import get_llm
+from src.services.llm_gateway import get_llm, with_retry
 from pydantic import BaseModel, Field
+from concurrent.futures import ThreadPoolExecutor
 
 
 class AccuracyScore(BaseModel):
@@ -79,7 +81,8 @@ def get_llm_comparison_score(query: str, received: str, expected: str) -> float:
     "{received}"
     """
     
-    response = llm_with_schema.invoke(
+    # Apply retry wrapper to the LLM invocation
+    response = with_retry()(llm_with_schema.invoke)(
         prompt_template.format(
             query=query,
             expected=expected,
@@ -108,9 +111,23 @@ def load_queries_from_json(json_file_path: str) -> list:
         data = json.load(f)
     return data
 
+def get_number_workers():
+    import src.settings as settings
+    k = settings.RETRIEVER_K
+    chunk_chars = settings.CHUNK_SIZE
 
+    # Calculate theoretical max based on token budget
+    # (k * chunk_chars / 3.2) estimates tokens for retrieved context
+    tokens_per_query = (k * chunk_chars / 3.2) + 2000
+    system_token_budget = 128000 * 1.5
+
+    theoretical_max = math.floor(system_token_budget / tokens_per_query)
     
-from concurrent.futures import ThreadPoolExecutor
+    safety_cap = 4
+    workers = max(1, min(theoretical_max, safety_cap))
+
+    return workers
+    
 
 def run_tests(queries: list) -> pd.DataFrame:
     """Execute RAG evaluation tests on a list of queries in parallel.
@@ -125,11 +142,14 @@ def run_tests(queries: list) -> pd.DataFrame:
     Returns:
         A pandas DataFrame with results.
     """
+    WORKERS = get_number_workers()
     
     def process_single_query(item, idx):
         query_id = item.get('id', idx)
         query = item['query']
         expected = item['expected']
+
+        print(f"\n🔍 Testing Query {query_id}: {query}")
 
         try:
             # 1. Get RAG response
@@ -144,8 +164,14 @@ def run_tests(queries: list) -> pd.DataFrame:
                 expected=expected
             )
         except Exception as e:
-            received = f"Error: {str(e)}"
-            score = 0.0
+            print(f"❌ Error processing query {query_id}: {str(e)}")
+            return {
+                'Query ID': query_id,
+                'Query': query,
+                'Received Response': f"Error: {str(e)}",
+                'Expected Response': expected,
+                'Meaning Acc (%)': 0.0
+            }
 
         return {
             'Query ID': query_id,
@@ -156,8 +182,8 @@ def run_tests(queries: list) -> pd.DataFrame:
         }
 
     results = []
-    # Use 10 workers to parallelize the process
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    # Parallelize the process
+    with ThreadPoolExecutor(max_workers=WORKERS) as executor:
         # Pass both item and index to maintain the original ID logic
         futures = [executor.submit(process_single_query, item, i) for i, item in enumerate(queries, start=1)]
         for future in futures:
@@ -196,3 +222,4 @@ def main(json_file_path: str) -> None:
 if __name__ == "__main__":
     json_file = 'query.json'
     main(json_file)
+    # print(get_number_workers())
