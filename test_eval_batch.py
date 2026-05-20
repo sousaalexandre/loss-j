@@ -9,9 +9,9 @@ import test_eval
 # ---------------------------------------------------------------------------
 # Tunables
 # ---------------------------------------------------------------------------
-COOLDOWN_BETWEEN_RUNS_SEC = 5   # wait between full runs so TPM windows drain
-RETRY_COOLDOWN_SEC = 5          # wait before re-running failed queries
-MAX_QUERY_RETRIES = 5            # how many times to re-run queries that failed in a run
+COOLDOWN_BETWEEN_RUNS_SEC = 0
+RETRY_COOLDOWN_SEC = 1              # wait before re-running failed queries
+MAX_QUERY_RETRIES = 5               # how many times to re-run queries that failed in a run
 
 
 def _ensure_ids(queries):
@@ -95,10 +95,12 @@ def run_batch_evaluation(
 ):
     """Runs the RAG evaluation multiple times sequentially and aggregates results."""
     os.makedirs('outputs/results', exist_ok=True)
-    os.makedirs('outputs/batch_results', exist_ok=True)
+    os.makedirs('outputs/batch_results/matrix', exist_ok=True)
+    os.makedirs('outputs/batch_results/timings', exist_ok=True)
 
     queries = _ensure_ids(test_eval.load_queries_from_json(json_file))
     all_scores = {}
+    all_timings = []
     timestamp_batch = datetime.now().strftime('%Y%m%d_%H%M%S')
 
     def run_single_evaluation(run_idx):
@@ -112,14 +114,37 @@ def run_batch_evaluation(
 
         timestamp_run = datetime.now().strftime('%Y%m%d_%H%M%S')
         run_filename = f"outputs/results/{name}_{run_idx}_{timestamp_run}.csv"
-        results_df.to_csv(run_filename, index=False)
+        
+        timing_keys = {
+            'Time Retrieval (s)': 'Retrieval Time (s)',
+            'Time Generation (s)': 'Generation Time (s)',
+            'Time Evaluation (s)': 'Evaluation Time (s)',
+            'Time Total (s)': 'Total Time (s)'
+        }
+        
+        run_timing = {'Run': run_idx}
+        for col, label in timing_keys.items():
+            if col in results_df.columns:
+                # Sum the time for all queries in the run and round to 5 decimal places
+                total_stage_time = float(results_df[col].sum())
+                run_timing[label] = round(total_stage_time, 5)
+            else:
+                run_timing[label] = 0.0
+
+        run_timing_df = pd.DataFrame([run_timing])
+        
+        original_cols = ['Query ID', 'Query', 'Received Response', 'Expected Response', 'Meaning Acc (%)']
+        save_df = results_df[[c for c in original_cols if c in results_df.columns]]
+        save_df.to_csv(run_filename, index=False)
 
         scores = results_df.set_index('Query ID')['Meaning Acc (%)'].to_dict()
-        return f"Run {run_idx}", scores
+        return f"Run {run_idx}", scores, run_timing_df
 
     for i in range(1, num_runs + 1):
-        run_name, scores = run_single_evaluation(i)
+        run_name, scores, timings_df = run_single_evaluation(i)
         all_scores[run_name] = scores
+        if not timings_df.empty:
+            all_timings.append(timings_df)
         print(f"Finished {run_name}")
 
         # Cooldown between runs (skip after the last one).
@@ -139,11 +164,18 @@ def run_batch_evaluation(
 
     matrix_df = matrix_df.reindex(columns=sorted(matrix_df.columns))
 
-    matrix_output_path = f"outputs/batch_results/{name}_matrix_{timestamp_batch}.csv"
+    matrix_output_path = f"outputs/batch_results/matrix/{name}_matrix_{timestamp_batch}.csv"
     matrix_df.to_csv(matrix_output_path)
 
     print(f"\nBatch evaluation complete!")
     print(f"Summary matrix saved to: {matrix_output_path}")
+
+    # Save aggregated timings
+    if all_timings:
+        final_timings_df = pd.concat(all_timings, ignore_index=True)
+        timings_output_path = f"outputs/batch_results/timings/{name}_timings_{timestamp_batch}.csv"
+        final_timings_df.to_csv(timings_output_path, index=False)
+        print(f"Timings saved to: {timings_output_path}")
 
 
 if __name__ == "__main__":

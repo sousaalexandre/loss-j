@@ -51,7 +51,7 @@ def get_llm(force_cloud: bool = False) -> BaseChatModel:
             base_url=getattr(settings, "LOCAL_API_BASE_URL", "http://127.0.0.1:1234/v1"),
             model=settings.LOCAL_LLM_MODEL_NAME,
             api_key="lm-studio",    # dummy
-            timeout=120,            # 120 second timeout for local/remote servers
+            timeout=300,            # 300 second timeout for local/remote servers
             max_retries=0           # use custom wrapper at call sites for better control
         )
     else:

@@ -39,7 +39,7 @@ def get_embedding_model(force_cloud: bool = False, reset: bool = False) -> Embed
             api_key="lm-studio",    # dummy
             check_embedding_ctx_length=False,
             chunk_size=16,
-            timeout=120             # 120 second timeout for local/remote servers
+            timeout=300             # 300 second timeout for local/remote servers
         )
     else:
         _EMBEDDING_MODEL_INSTANCE = OpenAIEmbeddings(
