@@ -8,7 +8,7 @@ def analyze_batch(name):
     """
     Finds the most recent matrix for a given batch name and displays statistics.
     """
-    directory = "outputs/batch_results"
+    directory = "outputs/batch_results/matrix"
     pattern = os.path.join(directory, f"{name}_matrix_*.csv")
     files = glob.glob(pattern)
     

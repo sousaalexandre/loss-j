@@ -92,22 +92,18 @@ def query_handler(prompt: str) -> dict:
     """
     Processes a user query by retrieving relevant context and generating a response.
     """
+    import time
     retriever = get_retriever()
     
     # Wrap retriever invocation to catch embedding generation timeouts
+    t0 = time.perf_counter()
     raw_docs = with_retry()(retriever.invoke)(prompt)
+    t1 = time.perf_counter()
+    time_retrieval = t1 - t0
 
     #log(f"Retrieved {len(raw_docs)} documents for prompt: '{prompt}'", level="info")
 
     reranked_docs = _rerank_docs(raw_docs, prompt)
-    # for i, doc in enumerate(reranked_docs):
-    #     file_name = os.path.basename(doc.metadata.get('source', 'Unknown Source'))
-    #     log(
-    #         f"Document {i+1} (from {file_name}):\n"
-    #         f"Metadata: {doc.metadata}\n"
-    #         f"Content: {doc.page_content[:1000]}...\n",
-    #         level="info"
-    #     )
 
     context = _build_context(reranked_docs)
 
@@ -135,6 +131,16 @@ def query_handler(prompt: str) -> dict:
     )
 
     # Apply retry wrapper to the chain invocation
+    t0 = time.perf_counter()
     response = with_retry()(rag_chain.invoke)({"context": context, "question": prompt})
+    t1 = time.perf_counter()
+    time_generation = t1 - t0
 
-    return {"response": response, "documents": reranked_docs}
+    return {
+        "response": response, 
+        "documents": reranked_docs,
+        "timings": {
+            "time_retrieval": time_retrieval,
+            "time_generation": time_generation
+        }
+    }

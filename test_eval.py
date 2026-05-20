@@ -142,9 +142,10 @@ def run_tests(queries: list) -> pd.DataFrame:
     Returns:
         A pandas DataFrame with results.
     """
-    WORKERS = get_number_workers()
+    WORKERS = 1     # set 1 to be more stable for all settings, also to make well standardized statistics related to time
     
     def process_single_query(item, idx):
+        import time
         query_id = item.get('id', idx)
         query = item['query']
         expected = item['expected']
@@ -157,12 +158,21 @@ def run_tests(queries: list) -> pd.DataFrame:
             received = received_data["response"]
             received = received.replace('\n', ' ').replace('\r', ' ')
             
+            timings = received_data.get("timings", {})
+            time_retrieval = timings.get("time_retrieval", 0.0)
+            time_reranking = timings.get("time_reranking", 0.0)
+            time_generation = timings.get("time_generation", 0.0)
+            
             # 2. Get LLM Score
+            t0 = time.perf_counter()
             score = get_llm_comparison_score(
                 query=query,
                 received=received,
                 expected=expected
             )
+            time_evaluation = time.perf_counter() - t0
+            time_total = time_retrieval + time_reranking + time_generation + time_evaluation
+            
         except Exception as e:
             print(f"❌ Error processing query {query_id}: {str(e)}")
             return {
@@ -170,7 +180,12 @@ def run_tests(queries: list) -> pd.DataFrame:
                 'Query': query,
                 'Received Response': f"Error: {str(e)}",
                 'Expected Response': expected,
-                'Meaning Acc (%)': 0.0
+                'Meaning Acc (%)': 0.0,
+                'Time Retrieval (s)': 0.0,
+                'Time Reranking (s)': 0.0,
+                'Time Generation (s)': 0.0,
+                'Time Evaluation (s)': 0.0,
+                'Time Total (s)': 0.0
             }
 
         return {
@@ -178,7 +193,12 @@ def run_tests(queries: list) -> pd.DataFrame:
             'Query': query,
             'Received Response': received,
             'Expected Response': expected,
-            'Meaning Acc (%)': score
+            'Meaning Acc (%)': score,
+            'Time Retrieval (s)': time_retrieval,
+            'Time Reranking (s)': time_reranking,
+            'Time Generation (s)': time_generation,
+            'Time Evaluation (s)': time_evaluation,
+            'Time Total (s)': time_total
         }
 
     results = []
@@ -212,11 +232,14 @@ def main(json_file_path: str) -> None:
     if 'Query ID' in results_df.columns:
         results_df = results_df.sort_values(by='Query ID', ascending=True, na_position='last')
     
+    original_cols = ['Query ID', 'Query', 'Received Response', 'Expected Response', 'Meaning Acc (%)']
+    save_df = results_df[[c for c in original_cols if c in results_df.columns]]
+    
     os.makedirs('outputs', exist_ok=True)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     output_path = f'outputs/results/test_results_{timestamp}.csv'
     
-    results_df.to_csv(output_path, index=False)
+    save_df.to_csv(output_path, index=False)
     print(f"Results saved to {output_path}")
 
 if __name__ == "__main__":
