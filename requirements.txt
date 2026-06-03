@@ -23,7 +23,7 @@ cachetools==6.2.1
 certifi==2025.10.5
 cffi==2.0.0
 charset-normalizer==3.4.4
-chromadb==1.2.0
+chromadb
 click==8.3.0
 coloredlogs==15.0.1
 colorlog==6.10.1
@@ -33,7 +33,7 @@ cryptography==46.0.3
 cycler==0.12.1
 dataclasses-json==0.6.7
 datasets==4.4.1
-deepeval==4.0.4
+deepeval
 dill==0.4.0
 distro==1.9.0
 doclayout-yolo==0.0.4
@@ -162,7 +162,7 @@ polars==1.35.2
 polars-runtime-32==1.35.2
 polyfactory==3.2.0
 portalocker==3.2.0
-posthog==7.15.4
+posthog
 propcache==0.4.1
 protobuf==6.33.0
 psutil==7.1.3
