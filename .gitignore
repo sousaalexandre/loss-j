@@ -222,3 +222,5 @@ output/
 .DS_Store
 
 vectorstore_db/
+
+.deepeval
