@@ -34,7 +34,7 @@ def load_queries_from_json(json_file_path: str) -> list:
     return data
 
 
-def run_tests(queries: list, query_workers: int = 3, metric_workers: int = 10) -> pd.DataFrame:
+def run_tests(queries: list, query_workers: int = 3, metric_workers: int = 5) -> pd.DataFrame:
     """Execute complete RAG generation and DeepEval metrics on queries."""
     
     model_name = "gpt-5.4-nano" 

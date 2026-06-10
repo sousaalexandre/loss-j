@@ -12,7 +12,7 @@ COOLDOWN_BETWEEN_RUNS_SEC = 0
 RETRY_COOLDOWN_SEC = 1              # wait before re-running failed queries
 MAX_QUERY_RETRIES = 5               # how many times to re-run queries that failed in a run
 QUERY_WORKERS = 3                   # concurrent queries
-METRIC_WORKERS = 10                 # global max concurrent metric evaluations
+METRIC_WORKERS = 5                  # global max concurrent metric evaluations
 
 
 def _ensure_ids(queries):
