@@ -37,7 +37,48 @@ def load_queries_from_json(json_file_path: str) -> list:
 def run_tests(queries: list, query_workers: int = 3, metric_workers: int = 5) -> pd.DataFrame:
     """Execute complete RAG generation and DeepEval metrics on queries."""
     
-    model_name = "gpt-5.4-nano" 
+    model_name = "gpt-5.4-nano"
+    
+    # Custom model wrapper to increase httpx timeout and HTTP-level retries
+    from deepeval.models import DeepEvalBaseLLM
+    from langchain_openai import ChatOpenAI
+
+    class CustomGPTModel(DeepEvalBaseLLM):
+        def __init__(self, m_name: str):
+            self.m_name = m_name
+            # Increase timeout to 300s to avoid asyncio.TimeoutError during heavy batch concurrency
+            # Also enforce JSON object response format to avoid DeepEval invalid JSON errors
+            self.chat_model = ChatOpenAI(
+                model=m_name, 
+                max_retries=10, 
+                timeout=300,
+                model_kwargs={"response_format": {"type": "json_object"}}
+            )
+
+        def load_model(self):
+            return self.chat_model
+
+        def generate(self, prompt: str, **kwargs) -> str:
+            if "schema" in kwargs:
+                # Natively enforce the schema using LangChain and the LLM's Structured Outputs API
+                schema = kwargs["schema"]
+                res = self.chat_model.with_structured_output(schema).invoke(prompt)
+                return res.model_dump_json()
+            return self.chat_model.invoke(prompt).content
+
+        async def a_generate(self, prompt: str, **kwargs) -> str:
+            if "schema" in kwargs:
+                # Natively enforce the schema using LangChain and the LLM's Structured Outputs API
+                schema = kwargs["schema"]
+                res = await self.chat_model.with_structured_output(schema).ainvoke(prompt)
+                return res.model_dump_json()
+            res = await self.chat_model.ainvoke(prompt)
+            return res.content
+
+        def get_model_name(self):
+            return self.m_name
+
+    eval_model = CustomGPTModel(model_name)
     
     def process_single_query(item, idx, metric_executor):
         query_id = item.get('id', idx)
@@ -71,11 +112,11 @@ def run_tests(queries: list, query_workers: int = 3, metric_workers: int = 5) ->
             
             t0_eval = time.perf_counter()
             
-            answer_relevancy = AnswerRelevancyMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            faithfulness = FaithfulnessMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            contextual_precision = ContextualPrecisionMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            contextual_recall = ContextualRecallMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            contextual_relevancy = ContextualRelevancyMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
+            answer_relevancy = AnswerRelevancyMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            faithfulness = FaithfulnessMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            contextual_precision = ContextualPrecisionMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            contextual_recall = ContextualRecallMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            contextual_relevancy = ContextualRelevancyMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
             correctness = GEval(
                 name="Correctness",
                 criteria=(
@@ -92,7 +133,7 @@ def run_tests(queries: list, query_workers: int = 3, metric_workers: int = 5) ->
                     SingleTurnParams.EXPECTED_OUTPUT
                 ],
                 threshold=0.5,
-                model=model_name,
+                model=eval_model,
                 async_mode=False
             )
             
