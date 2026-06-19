@@ -18,6 +18,31 @@ rag_lock = threading.Lock()
 # DeepEval imports
 from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric, ContextualPrecisionMetric, GEval, ContextualRecallMetric, ContextualRelevancyMetric
 from deepeval.test_case import LLMTestCase, SingleTurnParams
+from deepeval.models import DeepEvalBaseLLM
+from langchain_openai import ChatOpenAI
+
+class DeepEvalCustomLLM(DeepEvalBaseLLM):
+    def __init__(self, model_name: str, timeout: float = 300.0, max_retries: int = 3):
+        self.model_name = model_name
+        self.model = ChatOpenAI(
+            model=model_name,
+            timeout=timeout,
+            max_retries=max_retries
+        )
+
+    def load_model(self):
+        return self.model
+
+    def generate(self, prompt: str) -> str:
+        res = self.model.invoke(prompt)
+        return res.content
+
+    async def a_generate(self, prompt: str) -> str:
+        res = await self.model.ainvoke(prompt)
+        return res.content
+
+    def get_model_name(self):
+        return self.model_name
 
 # Suppress telemetry warnings
 os.environ["ANONYMIZED_TELEMETRY"] = "False"
@@ -71,11 +96,13 @@ def run_tests(queries: list, query_workers: int = 3, metric_workers: int = 5) ->
             
             t0_eval = time.perf_counter()
             
-            answer_relevancy = AnswerRelevancyMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            faithfulness = FaithfulnessMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            contextual_precision = ContextualPrecisionMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            contextual_recall = ContextualRecallMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
-            contextual_relevancy = ContextualRelevancyMetric(threshold=0.5, model=model_name, include_reason=False, async_mode=False, strict_mode=False)
+            eval_model = DeepEvalCustomLLM(model_name=model_name, timeout=300.0)
+            
+            answer_relevancy = AnswerRelevancyMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            faithfulness = FaithfulnessMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            contextual_precision = ContextualPrecisionMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            contextual_recall = ContextualRecallMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
+            contextual_relevancy = ContextualRelevancyMetric(threshold=0.5, model=eval_model, include_reason=False, async_mode=False, strict_mode=False)
             correctness = GEval(
                 name="Correctness",
                 criteria=(
@@ -92,7 +119,7 @@ def run_tests(queries: list, query_workers: int = 3, metric_workers: int = 5) ->
                     SingleTurnParams.EXPECTED_OUTPUT
                 ],
                 threshold=0.5,
-                model=model_name,
+                model=eval_model,
                 async_mode=False
             )
             
