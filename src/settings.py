@@ -12,7 +12,7 @@ load_dotenv()
 # "pdfloader": PDF → Indexing directly (faster, no cleaning)
 # "docling": PDF → Markdown via Docling (ETL) → Indexing
 # "docling-images": PDF → Markdown with Images descriptions via Docling (ETL) → Indexing with image support
-LOADER_TYPE = "mineru"
+LOADER_TYPE = "docling-images"
 
 
 # ============================================================================
@@ -63,10 +63,10 @@ VLM_MODEL_NAME = "google/gemma-3-27b-it"
 
 
 # Local Models (LM Studio)
-USE_LOCAL_MODELS = False
+USE_LOCAL_MODELS = True
 LOCAL_API_BASE_URL = "http://127.0.0.1:1234/v1"  # for docker, use "http://host.docker.internal:1234/v1"
-LOCAL_LLM_MODEL_NAME = "gemma-4-31b-it"
-LOCAL_EMBEDDING_MODEL_NAME = "text-embedding-bge-m3"
+LOCAL_LLM_MODEL_NAME = "openai/gpt-oss-120b"
+LOCAL_EMBEDDING_MODEL_NAME = "text-embedding-qwen3-embedding-8b"
 
 
 # ============================================================================
